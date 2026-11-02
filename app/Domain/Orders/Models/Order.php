@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\Activitylog\LogOptions;
 
 /**
+ * @property string|null $payment_environment
+ * @property int $advance_required
  * @property int $subtotal
  * @property int $discount
  * @property int $shipping

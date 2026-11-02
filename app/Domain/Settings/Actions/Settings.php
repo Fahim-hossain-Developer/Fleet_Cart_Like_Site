@@ -23,6 +23,9 @@ final class Settings
         if ($key === 'checkout_payment_methods') {
             validator(['methods' => $value], ['methods' => 'array:cod,bank,manual_mobile', 'methods.*.enabled' => 'boolean', 'methods.*.instructions' => 'nullable|string|max:2000'])->validate();
         }
+        if ($key === 'admin_otp_roles') {
+            validator(['roles' => $value], ['roles.*' => 'string|exists:roles,name,guard_name,admin'])->validate();
+        }
         Setting::query()->updateOrCreate(['key' => $key], ['value' => $value, 'group' => 'general']);
         Cache::forget('store.setting.'.$key);
     }

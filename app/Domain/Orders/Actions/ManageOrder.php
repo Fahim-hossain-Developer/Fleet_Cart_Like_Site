@@ -3,12 +3,14 @@
 namespace App\Domain\Orders\Actions;
 
 use App\Domain\Orders\Events\OrderChanged;
-use App\Domain\Orders\Models\DownloadEntitlement;
 use App\Domain\Orders\Models\Order;
 use App\Domain\Orders\Models\OrderPayment;
-use App\Domain\Orders\Models\OrderRefund;
 use App\Domain\Orders\Models\OrderReturn;
 use App\Domain\Orders\Models\Shipment;
+use App\Domain\Payments\Actions\PendingOperations;
+use App\Domain\Payments\Actions\RecordPaymentReceipt;
+use App\Domain\Payments\Actions\RecordRefundReceipt;
+use App\Domain\Shipping\Models\CourierBooking;
 use App\Jobs\SendOrderUpdate;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -50,6 +52,9 @@ final class ManageOrder
             $o = Order::lockForUpdate()->findOrFail($order->id);
             if ($customer && ($o->status !== 'pending' || $status !== 'cancelled')) {
                 $this->fail();
+            }
+            if (in_array($status, ['cancelled', 'failed'])) {
+                app(PendingOperations::class)->mutable($o);
             }
             if ($o->status === $status) {
                 return $o;
@@ -103,21 +108,7 @@ final class ManageOrder
 
                 return;
             }
-            if (in_array($o->status, ['cancelled', 'failed', 'returned', 'refunded']) || $amount > $o->total - $o->paid_amount) {
-                $this->fail();
-            }
-            if ($o->stock_policy === 'payment') {
-                app(OrderInventory::class)->deduct($o);
-            }
-            $o->payments()->create(['key' => $key, 'amount' => $amount, 'reference' => $reference, 'admin_id' => $admin->id]);
-            $paid = $o->paid_amount + $amount;
-            $o->update(['paid_amount' => $paid, 'payment_status' => $paid === $o->total ? 'paid' : 'partial']);
-            if ($paid === $o->total) {
-                foreach ($o->items as $item) {
-                    DownloadEntitlement::where('order_item_id', $item->id)->whereNull('enabled_at')->get()->each(fn ($e) => $e->update(['enabled_at' => now(), 'expires_at' => $e->expiry_days ? now()->addDays($e->expiry_days) : null]));
-                }
-            }
-            $this->event($o, 'payment', __('orders.payment_recorded'), true);
+            app(RecordPaymentReceipt::class)->execute($o, $amount, $reference, $key, $admin->id);
         }, 3);
     }
 
@@ -134,7 +125,14 @@ final class ManageOrder
 
                 return;
             }
-            if (! in_array($o->status, ['packed', 'shipped'])) {
+            app(PendingOperations::class)->mutable($o);
+            if (app()->environment('production') && $o->payment_environment === 'sandbox') {
+                $this->fail();
+            }
+            if ($o->payment_method === 'cod' && $o->paid_amount - $o->refunded_amount < $o->advance_required) {
+                $this->fail();
+            }
+            if (CourierBooking::where('order_id', $o->id)->exists() || ! in_array($o->status, ['packed', 'shipped'])) {
                 $this->fail();
             }
             app(OrderInventory::class)->deduct($o);
@@ -202,52 +200,7 @@ final class ManageOrder
         validator(compact('amount', 'reason', 'key'), ['amount' => 'required|integer|min:1', 'reason' => 'required|string|max:2000', 'key' => 'required|uuid'])->validate();
         DB::transaction(function () use ($order, $amount, $reason, $key, $restock, $admin) {
             $o = Order::lockForUpdate()->findOrFail($order->id);
-            $old = OrderRefund::where('key', $key)->first();
-            if ($old) {
-                abort_unless($old->order_id === $o->id, 403);
-
-                return;
-            }
-            $shipped = $o->shipments()->exists();
-            $r = $o->returns()->where('status', 'approved')->first();
-            if (($shipped && ! $r) || (! $shipped && ! in_array($o->status, ['cancelled', 'failed'])) || $amount > $o->paid_amount - $o->refunded_amount) {
-                $this->fail();
-            }
-            // Before shipping, full cancellation includes shipping/gift/tax. After shipping only approved returned merchandise is refundable.
-            $cap = $o->total;
-            if ($shipped) {
-                $cap = 0;
-                foreach ($r->items as $id => $qty) {
-                    $i = $o->items()->findOrFail($id);
-                    $cap += intdiv($i->total * $qty, $i->qty);
-                }if ($o->refunded_amount + $amount > $cap) {
-                    $this->fail();
-                }
-            }
-            foreach ($restock as $id => $qty) {
-                $i = $o->items()->find($id);
-                if (! $i || ($shipped && $qty > ($r->items[$id] ?? 0))) {
-                    $this->fail();
-                }$already = 0;
-                foreach ($o->refunds as $previous) {
-                    $already += (int) ($previous->items[$id] ?? 0);
-                }
-                if ($shipped && $qty + $already > ($r->items[$id] ?? 0)) {
-                    $this->fail();
-                }
-                app(OrderInventory::class)->restock($i, $qty);
-            }
-            $o->refunds()->create(['key' => $key, 'amount' => $amount, 'reason' => $reason, 'items' => $restock, 'admin_id' => $admin->id]);
-            $refunded = $o->refunded_amount + $amount;
-            $o->update(['refunded_amount' => $refunded, 'payment_status' => $refunded === $o->paid_amount ? 'refunded' : 'partial_refund']);
-            if (! $shipped && $refunded === $o->total) {
-                $o->update(['status' => 'refunded']);
-            }
-            if ($shipped && $refunded === $cap) {
-                $r->update(['status' => 'refunded']);
-                $o->update(['status' => 'returned']);
-            }
-            $this->event($o, 'refund', __('orders.manual_refund_recorded'), true);
+            app(RecordRefundReceipt::class)->execute($o, $amount, $reason, $key, $admin->id, $restock);
         }, 3);
     }
 }

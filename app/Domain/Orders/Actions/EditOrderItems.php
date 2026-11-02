@@ -4,6 +4,7 @@ namespace App\Domain\Orders\Actions;
 
 use App\Domain\Checkout\Actions\PriceCalculator;
 use App\Domain\Orders\Models\Order;
+use App\Domain\Payments\Actions\PendingOperations;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -19,6 +20,7 @@ final class EditOrderItems
                 throw ValidationException::withMessages(['order' => __('orders.invalid_operation')]);
             }
             $wasDeducted = $o->items()->where('stock_deducted', '>', 0)->exists();
+            app(PendingOperations::class)->mutable($o);
             $lines = [];
             $items = $o->items()->orderBy('id')->get();
             foreach ($items as $i) {
