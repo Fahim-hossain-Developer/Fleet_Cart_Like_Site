@@ -33,3 +33,5 @@ Thumbs.db
 /public/fonts/filament/
 /.env.*
 !/.env.example
+
+/storage/fonts/

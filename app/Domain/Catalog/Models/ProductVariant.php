@@ -2,9 +2,11 @@
 
 namespace App\Domain\Catalog\Models;
 
+use App\Domain\Orders\Models\OrderItem;
 use Database\Factories\ProductVariantFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Validation\ValidationException;
 
 /** @property array<string,string> $attributes */
 class ProductVariant extends CatalogModel
@@ -15,6 +17,15 @@ class ProductVariant extends CatalogModel
     protected static function newFactory(): ProductVariantFactory
     {
         return ProductVariantFactory::new();
+    }
+
+    protected static function booted(): void
+    {
+        static::deleting(function (self $variant) {
+            if (OrderItem::where('variant_id', $variant->id)->exists()) {
+                throw ValidationException::withMessages(['variant' => __('orders.variant_in_use')]);
+            }
+        });
     }
 
     /** @var list<string> */

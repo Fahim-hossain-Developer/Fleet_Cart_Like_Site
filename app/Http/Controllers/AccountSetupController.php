@@ -7,6 +7,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class AccountSetupController extends Controller
 {
@@ -29,11 +30,14 @@ class AccountSetupController extends Controller
     {
         $data = $request->validate(['password' => 'required|string|min:12|max:128|confirmed']);
         DB::transaction(function () use ($token, $data): void {
-            $record = DB::table('account_setup_tokens')->where('token_hash', hash('sha256', $token))->lockForUpdate()->first();
+            $candidate = DB::table('account_setup_tokens')->where('token_hash', hash('sha256', $token))->first();
+            abort_unless($candidate !== null, 404);
+            $user = User::lockForUpdate()->findOrFail((int) $candidate->user_id);
+            $record = DB::table('account_setup_tokens')->where('id', $candidate->id)->lockForUpdate()->first();
             abort_unless($record && ! $record->used_at && now()->lt($record->expires_at), 404);
-            User::findOrFail($record->user_id)->update(['password' => $data['password']]);
+            $user->forceFill(['password' => $data['password'], 'auth_version' => $user->auth_version + 1, 'remember_token' => Str::random(60)])->save();
             DB::table('account_setup_tokens')->where('id', $record->id)->update(['used_at' => now()]);
-        });
+        }, 3);
 
         return redirect()->route('home')->with('status', __('checkout.password_set'));
     }

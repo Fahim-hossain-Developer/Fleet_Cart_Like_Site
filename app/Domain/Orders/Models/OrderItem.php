@@ -6,6 +6,17 @@ use Database\Factories\OrderItemFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property bool $tax_inclusive
+ * @property int $subtotal
+ * @property int $discount
+ * @property int $tax
+ * @property int $total
+ * @property int $tax_bps
+ * @property int $stock_deducted
+ * @property int $restocked_qty
+ * @property int $qty
+ */
 class OrderItem extends Model
 {
     /** @use HasFactory<OrderItemFactory> */
@@ -20,5 +31,5 @@ class OrderItem extends Model
 
     protected $guarded = ['id'];
 
-    protected $casts = ['options' => 'array', 'unit_price' => 'integer', 'total' => 'integer'];
+    protected $casts = ['tax_inclusive' => 'boolean', 'qty' => 'integer', 'stock_deducted' => 'integer', 'restocked_qty' => 'integer', 'options' => 'array', 'unit_price' => 'integer', 'total' => 'integer'];
 }

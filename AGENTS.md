@@ -10,4 +10,4 @@ Target commands: `composer setup`, `composer dev`, `composer test`, `composer li
 ## Rules
 Use app/Domain/* modules and Action classes; thin controllers and Livewire components. Integer minor-unit money; server-side validation and authorization; separate customer/admin guards. Never commit secrets. Original assets only. Add meaningful tests and translations with features. Record decisions, validation and blockers. Small commits: `phase-X: description`.
 
-Use the existing checkout; do not create worktrees unless requested. Implement only the currently authorized phase. Current request: Phase 2, including its addon Section 12 items. Stop before Phase 3. The user's explicit push authorization overrides the spec's older local-only Git assumption.
+Use the existing checkout; do not create worktrees unless requested. Implement only the currently authorized phase. Current request: Phase 3 — Orders & Customers, including addon Section 12 items. Stop before Phase 4. The user's explicit push authorization overrides the spec's older local-only Git assumption.

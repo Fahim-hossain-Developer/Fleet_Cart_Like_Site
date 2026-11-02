@@ -3,14 +3,17 @@
 namespace App\Domain\Orders\Actions;
 
 use App\Domain\Cart\Models\Cart;
+use App\Domain\Catalog\Models\ProductDownload;
 use App\Domain\Checkout\Actions\CheckoutQuote;
 use App\Domain\Customers\Actions\CreateCheckoutAccount;
 use App\Domain\Customers\Actions\NormalizePhone;
 use App\Domain\Marketing\Actions\ValidateCoupon;
+use App\Domain\Orders\Models\DownloadEntitlement;
 use App\Domain\Orders\Models\Order;
 use App\Domain\Settings\Actions\CurrencyDisplay;
 use App\Domain\Shipping\Models\Location;
 use App\Jobs\SendOrderConfirmation;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -18,11 +21,17 @@ use Illuminate\Validation\ValidationException;
 final class PlaceOrder
 {
     /** @param array<string,mixed> $data */
-    public function execute(Cart $cart, array $data): Order
+    public function execute(Cart $cart, array $data, bool $manual = false): Order
     {
+        if ($manual) {
+            app(OrderAccess::class)->staff();
+        }
+        if (! empty($data['email'])) {
+            $data['email'] = strtolower(trim($data['email']));
+        }
         $data['phone'] = app(NormalizePhone::class)->execute($data['phone']);
 
-        return DB::transaction(function () use ($cart, $data): Order {
+        return DB::transaction(function () use ($cart, $data, $manual): Order {
             $cart = Cart::query()->lockForUpdate()->findOrFail($cart->id);
             $existing = Order::where('idempotency_key', $data['idempotency_key'])->first();
             if ($existing) {
@@ -30,7 +39,7 @@ final class PlaceOrder
 
                 return $existing;
             }
-            if (! Auth::guard('web')->check() && ! store_setting('checkout_guest_enabled', config('checkout.guest_enabled'))) {
+            if (! $manual && ! Auth::guard('web')->check() && ! store_setting('checkout_guest_enabled', config('checkout.guest_enabled'))) {
                 throw ValidationException::withMessages(['cart' => __('checkout.guest_disabled')]);
             }
             $division = Location::where('type', 'division')->where('country', $data['country'])->findOrFail($data['division_id']);
@@ -54,21 +63,24 @@ final class PlaceOrder
                 throw ValidationException::withMessages(['payment_reference' => __('checkout.payment_reference_required')]);
             }
             $quote = app(CheckoutQuote::class)->execute($cart, $data, true);
+            $user = $manual ? (! empty($data['user_id']) ? User::where('is_blocked', false)->findOrFail($data['user_id']) : null) : app(CreateCheckoutAccount::class)->execute($data);
+            $display = app(CurrencyDisplay::class)->current();
+            $order = Order::create(['stock_policy' => store_setting('orders_stock_policy', 'placement'), 'ip_hash' => request()->ip() ? hash_hmac('sha256', request()->ip(), config('app.key')) : null, 'number' => app(OrderNumber::class)->generate(), 'idempotency_key' => $data['idempotency_key'], 'cart_id' => $cart->id, 'user_id' => $user?->id, 'phone' => $data['phone'], 'guest_email' => $data['email'] ?? null, 'currency' => config('checkout.base_currency'), 'display_currency' => $display->code ?? config('checkout.base_currency'), 'display_rate_ppm' => $display ? app(CurrencyDisplay::class)->rate($display) : 1000000, 'display_total' => $display ? app(CurrencyDisplay::class)->convert($quote['total'], $display) : $quote['total'], 'original_discount' => $quote['discount'], 'subtotal' => $quote['subtotal'], 'discount' => $quote['discount'], 'shipping' => $quote['shipping'], 'tax' => $quote['tax'], 'tax_included' => $quote['tax_included'], 'gift_fee' => $quote['gift_fee'], 'total' => $quote['total'], 'is_gift' => $data['is_gift'] ?? false, 'gift_message' => ! empty($data['is_gift']) ? ($data['gift_message'] ?? null) : null, 'hide_prices' => ! empty($data['is_gift']) && ! empty($data['hide_prices']), 'recipient_name' => ! empty($data['is_gift']) ? ($data['recipient_name'] ?? null) : null, 'recipient_phone' => ! empty($data['is_gift']) && ! empty($data['recipient_phone']) ? app(NormalizePhone::class)->execute($data['recipient_phone']) : null, 'shipping_address' => ['name' => $data['name'], 'country' => $data['country'], 'division' => $division->name, 'district' => $district->name, 'upazila' => $upazila->name, 'area' => $area->name ?? ($data['area'] ?? null), 'line1' => $data['address']], 'note' => $data['note'] ?? null, 'payment_method' => $data['payment_method'], 'payment_reference' => $data['payment_reference'] ?? null, 'payment_proof' => $data['payment_proof'] ?? null, 'shipping_method' => $quote['shipping_method'], 'coupon_id' => $quote['coupon']?->id, 'placed_at' => now()]);
             foreach ($quote['lines'] as $line) {
-                $product = $line['product'];
-                $variant = $line['variant'];
-                if ($variant) {
-                    $variant->decrement('qty', $line['qty']);
-                } elseif ($product->manage_stock && $product->stock_status !== 'backorder') {
-                    $product->decrement('qty', $line['qty']);
+                $item = $order->items()->create(array_intersect_key($line, array_flip(['product_id', 'variant_id', 'name', 'sku', 'qty', 'unit_price', 'subtotal', 'discount', 'tax', 'tax_inclusive', 'tax_bps', 'total', 'options'])));
+            }
+            foreach ($order->items as $i) {
+                $i->update(['pricing_qty' => $i->qty, 'pricing_subtotal' => $i->subtotal]);
+            }
+            if ($order->stock_policy === 'placement') {
+                app(OrderInventory::class)->deduct($order);
+            }
+            foreach ($order->items as $item) {
+                foreach (ProductDownload::where('product_id', $item->product_id)->get() as $download) {
+                    DownloadEntitlement::create(['order_item_id' => $item->id, 'product_download_id' => $download->id, 'label' => $download->label ?? $item->name, 'file' => $download->file, 'external_url' => $download->external_url, 'limit' => $download->limit, 'expiry_days' => $download->expiry_days]);
                 }
             }
-            $user = app(CreateCheckoutAccount::class)->execute($data);
-            $display = app(CurrencyDisplay::class)->current();
-            $order = Order::create(['number' => app(OrderNumber::class)->generate(), 'idempotency_key' => $data['idempotency_key'], 'cart_id' => $cart->id, 'user_id' => $user?->id, 'phone' => $data['phone'], 'guest_email' => $data['email'] ?? null, 'currency' => config('checkout.base_currency'), 'display_currency' => $display->code ?? config('checkout.base_currency'), 'display_rate_ppm' => $display ? app(CurrencyDisplay::class)->rate($display) : 1000000, 'display_total' => $display ? app(CurrencyDisplay::class)->convert($quote['total'], $display) : $quote['total'], 'subtotal' => $quote['subtotal'], 'discount' => $quote['discount'], 'shipping' => $quote['shipping'], 'tax' => $quote['tax'], 'tax_included' => $quote['tax_included'], 'gift_fee' => $quote['gift_fee'], 'total' => $quote['total'], 'is_gift' => $data['is_gift'] ?? false, 'gift_message' => ! empty($data['is_gift']) ? ($data['gift_message'] ?? null) : null, 'hide_prices' => ! empty($data['is_gift']) && ! empty($data['hide_prices']), 'recipient_name' => ! empty($data['is_gift']) ? ($data['recipient_name'] ?? null) : null, 'recipient_phone' => ! empty($data['is_gift']) && ! empty($data['recipient_phone']) ? app(NormalizePhone::class)->execute($data['recipient_phone']) : null, 'shipping_address' => ['name' => $data['name'], 'country' => $data['country'], 'division' => $division->name, 'district' => $district->name, 'upazila' => $upazila->name, 'area' => $area->name ?? ($data['area'] ?? null), 'line1' => $data['address']], 'note' => $data['note'] ?? null, 'payment_method' => $data['payment_method'], 'payment_reference' => $data['payment_reference'] ?? null, 'payment_proof' => $data['payment_proof'] ?? null, 'shipping_method' => $quote['shipping_method'], 'coupon_id' => $quote['coupon']?->id, 'placed_at' => now()]);
-            foreach ($quote['lines'] as $line) {
-                $order->items()->create(array_intersect_key($line, array_flip(['product_id', 'variant_id', 'name', 'sku', 'qty', 'unit_price', 'subtotal', 'discount', 'tax', 'tax_inclusive', 'total', 'options'])));
-            }
+            $order->update(['risk_flags' => app(AssessOrderRisk::class)->flags($order)]);
             if ($quote['coupon']) {
                 $coupon = $quote['coupon'];
                 $coupon->increment('used');

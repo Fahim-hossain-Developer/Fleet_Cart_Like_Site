@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\CustomerActive;
 use App\Http\Middleware\SetLocale;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -12,7 +13,7 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->web(append: [SetLocale::class]);
+        $middleware->web(append: [SetLocale::class, CustomerActive::class]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

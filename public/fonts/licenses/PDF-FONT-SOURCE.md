@@ -1,0 +1,2 @@
+# PDF fonts
+The static NotoSansBengali-Regular.ttf and NotoSansBengali-Bold.ttf files are from the installed Debian fonts-noto-core distribution (upstream Noto Project, https://github.com/notofonts/bengali). They are licensed under SIL Open Font License 1.1; retain NotoSansBengali-OFL.txt with redistributed fonts. Frontend Fontsource WOFF/WOFF2 assets remain separate. The TTFs are unmodified and used locally by the Bangla PDF shaper.
