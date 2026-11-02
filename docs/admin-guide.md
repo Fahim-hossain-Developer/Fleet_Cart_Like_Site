@@ -41,4 +41,8 @@ Open Orders → View for status, timeline, internal/public notes, quantity edits
 
 Customers has search, blocked filter, a detail/history page, notes, tags, blocking and bounded CSV export. Support has read access; management/exports are owner/manager-only. Phone Blacklists stores normalized +880 numbers as review warnings. Checkout Preferences now controls deduction timing and high-value COD threshold. Customer erasure requests appear on customer details; handle them through your documented retention/support process.
 
-Bangla PDFs require the updated PHP image/Pango runtime. Do not call manual payment/refund records a gateway transaction. Real payment, courier and SMS adapters remain Phase 4.
+Bangla PDFs require the updated PHP image/Pango runtime. Do not call manual payment/refund records a gateway transaction. Phase 4 payment/SMS adapters and fake/manual couriers are documented in integrations.md; commercial courier APIs remain setup-only pending documentation.
+
+## Payments, couriers and login codes (Phase 4)
+
+See [integrations.md](integrations.md) for private provider configuration, future documentation fields, COD advance rules, payment/refund reconciliation, separate collection/remittance reports and phone/admin OTP. Integration settings require `integrations.manage` (super admin); financial actions retain their payment/refund permissions. Test drivers never establish live delivery or real-money evidence.

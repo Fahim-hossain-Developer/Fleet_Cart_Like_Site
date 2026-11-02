@@ -44,3 +44,7 @@ EmailCode commits failed-attempt counters, hashes challenges, atomically consume
 Pango/HarfBuzz shapes Bangla into private cached images; Dompdf composes the PDFs. Rebuild the PHP image when upgrading. No external font/CDN/remote PDF fetch is used. Native hosts require Pango, Fontconfig, GD and process execution. Customer endpoints always recheck ownership even with a valid URL signature.
 
 There are now nine MySQL-only race tests; SQLite explicitly skips them. Do not rebuild Vite assets concurrently with HTTP tests because the manifest is replaced during build. Keep MySQL suites sequential and isolated from development data.
+
+## Phase 4 integration boundary
+
+Read [integrations.md](integrations.md), phase-4-design.md and phase-4-plan.md before changing gateway/courier/OTP code. Never perform external HTTP inside order locks or blindly retry unknown mutations. Keep credentials and delivery outboxes encrypted, callbacks stateless/authenticated, environment snapshots immutable, and financial receipts idempotent. Six scheduler tasks and a queue worker (for asynchronous queue drivers) support recovery. The isolated MySQL suite exercises real concurrent workers and migration rollback; never point it at application data.

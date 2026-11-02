@@ -13,7 +13,7 @@ The current user explicitly requested Section 12's mapping. Its specific phase a
 | B4 Toolbar | 1–2 | URL-bound page size, columns, grid/list, sort, count, filters and clear-all; sorting/filtering uses displayed sale/variant price. |
 | B5 Widgets | 1–2 | Configurable category tree, attribute filters, latest/sale/top-rated products and tags. Ratings require real review aggregates; empty blocks stay empty. Blog widgets and sidebar marketing banners belong with real content in Phase 5. |
 | C1 Gift / C2 Account-at-checkout | 2 | Implemented: fees/recipient/message/hide-price snapshots; optional/auto new accounts with expiring setup link and encrypted delivery retry. Existing contacts remain unattached guest orders. Invoice/packing/label gift rendering, refund rules and verified customer accounts are delivered in Phase 3. |
-| C3 Email OTP | 3–4 | Phase 3: customer email login/verification codes, hashed six digits, ten-minute expiry, attempt/send limits, single use and verified guest-order linking. First verification revokes pre-verification credentials/sessions. SMS OTP and per-role admin email OTP remain Phase 4; TOTP remains Phase 6. No completed admin 2FA claim. |
+| C3 Email OTP | 3–4 | Phase 3: customer email login/verification codes, hashed six digits, ten-minute expiry, attempt/send limits, single use and verified guest-order linking. First verification revokes pre-verification credentials/sessions. Phase 4 adds delivered SMS phone login/verification and opt-in per-role admin email codes, including password/session takeover defenses and concurrent single-use tests. TOTP remains Phase 6; external SMS/mail delivery is not certified. |
 | Currency rates | 2 basic / 6 adapters | Manual rates/history, integer conversion/rounding/markup, profile/cookie choice and order snapshots implemented. All payment charges stay base currency. Automatic provider adapters remain Phase 6. |
 | Extra gateways | 8 optional | Deferred. |
 | Security addendum | 0 baseline → 7 | Backfilled encrypted credential column, masked server-side vault accessor, hidden serialization, audit exclusions and executable storefront leak tests. Cart/checkout/receipt leak coverage was added in Phase 2. Future landing routes and built JavaScript must join crawler coverage when implemented. Full Security Scan UI/alerts remain Phase 7. |
@@ -23,4 +23,4 @@ The current user explicitly requested Section 12's mapping. Its specific phase a
 | Dashboard/ops | 6 | Deferred. |
 | A4 AI | 8 optional | Deferred, no provider keys needed. |
 
-The addon's complete acceptance checklist spans multiple phases; it is not claimed complete after Phase 3.
+The addon's complete acceptance checklist spans multiple phases; it is not claimed complete after Phase 4.
