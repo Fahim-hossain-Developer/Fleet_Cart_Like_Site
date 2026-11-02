@@ -1,57 +1,59 @@
 # Progress
 
 ## Current scope
-**Phase 1 — Catalog complete for this phase's scope.** Phase 2 has not started. Read PROJECT_SPEC.md and ADDON_01_NEW_FEATURES.md; the addon's Section 12 mapping and staged dependencies are recorded in docs/addon-phase-map.md.
+**Phase 2 — Cart & Checkout complete for this phase's scope.** Phase 3 has not started. Baseline: pushed Phase 1 commit `ab9769a`; current branch `phase-2-checkout`. The user authorized the next phase after publication. Phase 1 history is retained in docs/history/phase-1-progress.md.
 
-Phase 0 remains the verified foundation. The current user authorized the next phase and addon-mapped work; earlier Phase 0-only instructions are historical. Work is on `phase-1-catalog`, based on pushed commit `8917dcf`.
+Read PROJECT_SPEC.md, ADDON_01_NEW_FEATURES.md and docs/addon-phase-map.md before continuing. All later addon items remain in their mapped phases.
 
-## Phase 1 implemented
-- New portable migrations for categories, brands, tags, attribute sets/values, products, variants, options/values, private digital download definitions, relations, tabs, badges, search logs, redirects and import reports; Spatie media migration. Factories, optional deterministic bilingual CatalogSeeder and original generated placeholder images.
-- Separate staff-only Filament catalog CRUD with shared active-staff/catalog permission policy. Product forms cover translated content, minor-unit prices/sale windows, inventory, visibility, taxonomy, variant generation, options, private files, media/alt/order/removal, video URLs/uploads, SEO and related links.
-- Soft deletion, slug-history redirects, synchronized search text, model events after commit and activity records. Category ancestry cycles rejected. Bulk publication, draft, deletion, duplication and price/stock/category edits.
-- A1: clone actions on row/edit/bulk; source lock and unique slug/SKU suffixes; draft copies; reset/retain stock; copy nested graph and physically copy images; reset views/ratings; audit source ID. Shared-file references are deliberately not offered.
-- A2: translated global/category/per-product tabs, ordering/active flags, per-product suppression of global tabs, sanitized rich output.
-- A3: new/sale/out-of-stock/low-stock/free-shipping/pre-order rules; scheduled, prioritized custom product/category badges; configurable limit; product-card and detail rendering. Cart/flash-sale/real best-seller prerequisites remain below.
-- Storefront `/shop`, `/category/{slug}`, `/brand/{slug}`, `/product/{slug}`, `/search`; public-product scoping, price/stock/taxonomy/attribute filters, sort, page sizes, grid/list/columns, URL state and pagination. Filters/sort use the displayed active sale/minimum-active-variant price.
-- B1–B5 catalog portions: category-scoped live product/category suggestions, recent/popular searches; toggleable top bar and cookie/session locale persistence; lazy quick view; URL toolbar; configurable nested-category/attribute/latest/sale/top-rated/tag sidebars. Real review aggregates are required for top-rated items.
-- Product gallery/zoom, responsive WebP and AVIF conversions, variant price/stock/image, option controls, related/recently viewed products, en/bn scaffolding and original mobile-first templates. Purchase controls arrive with the real cart in Phase 2.
-- CSV import/export contract: new simple products, integer prices, max 500 rows / 2 MB, row validation report, no overwrite, queue-compatible processing, private uploads, staff authorization and spreadsheet formula neutralization on export.
-- Addon security baseline: encrypted credential column/vault with masked accessor; hidden serialization and audit exclusions; executable sentinel leak tests on existing storefront routes. Public image MIME types explicitly exclude executable/SVG content.
+## Implemented
+- Persistent guest carts using unguessable session tokens; authenticated cart lookup and guest merge; cart/item ownership policies; add/update/remove, save-for-later, mini-cart and cart page.
+- Product/variant/option validation, private file options, aggregate stock checks across option lines, current server prices and readable option snapshots. Product form/Buy Now/quick view submit to the actual cart; required custom options use the full product page. Mobile purchase controls stay accessible.
+- Fixed/percent/free-shipping coupons with date/minimum/cap/total/per-phone limits; coupon and inventory checks are re-run under transaction/row locks on placement.
+- Integer PriceCalculator, exact coupon apportionment, line tax rounding, inclusive/exclusive tax snapshots and a reconciled checkout breakdown. No client totals are trusted.
+- Licensed Bangladesh location snapshot: 8 divisions, 64 districts, 494 upazilas. Cascading selectors validate the actual hierarchy. Configured areas render as a dropdown; absent area data has an honest free-text fallback. Source/license retained in database/data.
+- District shipping zones; flat/weight/pickup/free-threshold methods; no uncovered-district free-rate fallback. Tax classes/rates and product class/weight/gift inputs.
+- One-page or three-step phone-first checkout, terms, note, COD, configured bank/manual-mobile methods with references/private proofs. Every such order starts unpaid; no payment verification is fabricated.
+- Transactional order/item/address/option/currency/gift snapshots; inventory deduction on placement; collision-checked configurable order prefix; idempotency keys; session/customer-owned receipts; read-only admin order intake.
+- Addon C1: gift toggle, fee overrides, message/recipient/hide-price snapshots and optional gift tax. Invoice/packing-slip/refund behavior is for Phase 3.
+- Addon C2: optional/auto new account without auto-login, contact deduplication, single-use one-hour password setup. Matching contacts do not attach guest orders to existing accounts. Full customer login/identity verification remains Phase 3.
+- Durable order/account setup delivery retries after commit. Setup validation token is hashed; pending delivery payload is encrypted and cleared after delivery. Mail outages do not fail a committed order response. Local mail/SMS use private logs, not claimed provider delivery.
+- Manual currencies/rate history/ppm conversion, formatting/rounding/markup, cookies/session/authenticated profile fields and order rate snapshots. Base-currency invariants are enforced; automatic rate adapters remain Phase 6. Catalog price filters explicitly show base-currency units.
+- Permission-scoped admin shipping/location/tax/currency/coupon/checkout screens, factories, audit records, schema migrations and English/Bangla strings.
+- Credential-leak HTML coverage extended to cart, checkout and protected receipts.
 
 ## Validation — 2026-11-02
-- Full `scripts/cloud composer ci`: Pint, Larastan level 6, Pest and Vite build. **45 tests / 212 assertions passed**.
-- Isolated MySQL 8: new schema/migrations, role seeding and **45 tests / 212 assertions passed**, including committed-data FULLTEXT and effective-price tests.
-- SQLite uses fast transaction-isolated feature tests; search integration tests use DatabaseMigrations so MySQL records are committed before FULLTEXT queries. Integration tests must run only against a disposable database.
-- Chromium: desktop catalog and lazy quick-view open/close; 360px variable-product interaction without horizontal overflow; actual staff login; catalog resources/preferences/import screen/create form; no browser or HTTP asset errors. Screenshots inspected.
-- Filament regression tests exercise actual create/edit, row/edit/bulk cloning and bulk price/stock/category actions; unauthorized staff and guests are rejected.
-- Leak tests verify encryption at rest, masking, hidden serialization, audit exclusion and current-route output.
-- `git diff --check`: clean. No local credentials, databases, uploaded media, dependencies or logs are committed.
+- `scripts/cloud composer ci`: **passed** — Pint, Larastan level 6, **74 SQLite tests / 342 assertions**, Vite production build. **3 MySQL-only concurrency tests explicitly skipped on SQLite**.
+- Isolated MySQL 8: migrations/seeding and **77 tests / 358 assertions passed**, with independent PHP workers proving last-unit exclusion, one-use coupon atomicity and simultaneous duplicate-submission idempotency. These are real row-lock tests, not mocked concurrency.
+- Chromium: mobile variant → cart → cascading address/shipping → gift → COD → protected unpaid receipt; both one-page and three-step flows; no browser/asset errors or horizontal overflow. Screenshots inspected. Default mode restored to one-page afterwards.
+- `composer setup`: repeated successfully, preserving existing data/key/admin credentials; scheduler retry tasks executed successfully with `artisan schedule:run`.
+- `git diff --check`: clean. Local credentials, uploaded files/proofs, databases, dependencies and runtime logs remain ignored.
 
-## Diagnosed during implementation
-- Corrected Livewire property naming so filter state does not collide with its internal attribute collection.
-- Optional Filament repeaters now start empty instead of requiring nonexistent child records.
-- Staff-role switching tests clear the previous user's session before switching identities.
-- InnoDB FULLTEXT cannot see rollback-isolated uncommitted fixtures; moved search tests to committed-data integration coverage.
-- Price filters now match displayed sale/variant prices rather than regular prices.
+## Diagnosed and corrected
+- Database defaults were added to in-memory order state; SQLite rollback removes the phone unique index before the column.
+- Local CLI config now uses a writable container directory; Tinker can perform supported local setup checks.
+- Three-step component quoting/accessibility was verified in Chromium.
+- Notification errors are isolated from committed orders using durable outboxes.
+- Inclusive tax and optional gift fields retain their correct meaning in snapshots and totals.
+- A validation run overlapped a Vite rebuild and briefly lost its manifest; the final quality/MySQL/browser checks were rerun sequentially against stable assets.
 
 ## Run / reuse
-Working directory: `/workspace/Fleet_Cart_Like_Site`.
-- Install/refresh: `scripts/cloud-bootstrap` (preserves local config/key/admin credentials).
-- Apply updates: `scripts/cloud php artisan migrate`.
-- Optional local sample catalog: `scripts/cloud php artisan db:seed --class=CatalogSeeder`.
-- Start: `scripts/cloud serve`. An existing development server may already own port 8000; reuse it rather than starting a duplicate.
-- Check: `scripts/cloud composer ci`.
-- Private initial local admin credentials remain in ignored `storage/logs/local-setup.log`; never commit or publish its contents. Native/Windows/Compose instructions remain in README.md.
+Directory: `/workspace/Fleet_Cart_Like_Site`.
+- Install/refresh: `scripts/cloud-bootstrap` or `scripts/cloud composer setup`.
+- Start: `scripts/cloud serve` (reuse an existing port-8000 app rather than starting duplicates).
+- Retry scheduler: `scripts/cloud php artisan schedule:work`; production cron runs schedule:run each minute. Sync queue delivers immediately; database queue additionally needs queue:work.
+- Quality: `scripts/cloud composer ci`.
+- Native/Windows/Compose instructions are in README.md. The current instance uses SQLite, file cache, sync queue and log mail/SMS. Logs can contain local setup links and must stay private.
+- Only run tests with disposable databases; integration tests migrate/rollback schema. MySQL test service used for this work is temporary and separate from development data.
 
-## Still deferred by mapping / limitations
-- Phase 2: cart/checkout/orders, quick-view add-to-cart, cart-line badges, gifts, account-at-checkout, real currency rates/conversion and additional switcher choices. No mislabeled conversion or fake cart success.
-- Customer profile preference persistence waits for real accounts; contact/tracking/help links wait for real routes. Blog sidebar/marketing banner widgets and review-driven data arrive with content/reviews.
-- Flash-sale badges and real sales-based best-seller badges wait for marketing/order statistics. No fabricated social proof.
-- Full credential-leak crawling of future cart/checkout/landing pages and built JS, Security Scan UI and alerts remain Phase 7. Current test coverage is explicitly limited to existing routes.
-- XLSX, full-content/variant/media CSV interchange and shared-file media references are not provided by this phase's simple-product CSV/copy contract.
-- Digital entitlements/download delivery require orders/accounts. Private definition paths are not exposed on product pages.
-- MariaDB, Windows and full Compose stack are not newly validated. No production deployment, Lighthouse target, full security-hardening or cloud-publication claim.
-- All remaining addon features stay in their mapped phases (see docs/addon-phase-map.md).
+## Limitations / later phases
+- Checkout currently targets Bangladesh addresses/phone normalization. International country-specific address workflows require later settings/platform work.
+- Local development delivery rates are examples (BDT 80/150), not courier quotes. Production seeding does not activate those sample rates. The bundled location snapshot may lag current boundaries; the admin can maintain it.
+- Phase 3: full order status/payment verification/fulfillment, cancellation/restocking, invoices/packing slips, returns/refunds, customer login/accounts/address books and verified guest-order linking. Do not equate checkout account creation with verified identity.
+- Inventory currently deducts on placement; optional checkout-start holds and alternate confirmation/payment-time stock policies are not enabled.
+- Online gateways/couriers/live SMS/OTP remain Phase 4. No real external payment, courier booking or SMS provider operation was tested.
+- Advanced coupon/cart rules remain Phase 5; automatic exchange rates remain Phase 6; full security scans/built-JS/future landing-page crawler coverage and production hardening remain Phase 7.
+- Gift invoice/refund rules are specified, but those future workflows are not claimed implemented. Order/account emails are at-least-once under ambiguous transport failures.
+- MariaDB, Windows, the full Compose stack, deployment/Lighthouse targets and restoration in a brand-new published task are not claimed verified.
 
 ## Exact next step
-On “Continue with the next phase,” verify this baseline and implement **Phase 2 — Cart & Checkout**, including its addon items, without rebuilding the catalog.
+On “Continue with the next phase,” verify this baseline, then implement **Phase 3 — Orders & Customers** and its addon mapping. Do not rebuild the cart/checkout.

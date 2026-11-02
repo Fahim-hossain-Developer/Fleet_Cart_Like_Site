@@ -1,5 +1,8 @@
 <?php
 
+require_once __DIR__.'/Support/CatalogFixtures.php';
+require_once __DIR__.'/Support/CheckoutFixtures.php';
+
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;

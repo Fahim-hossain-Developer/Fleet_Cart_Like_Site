@@ -1,10 +1,10 @@
 # Ecommerce implementation plan
+PROJECT_SPEC.md is the baseline; ADDON_01_NEW_FEATURES.md adds mapped requirements. See docs/addon-phase-map.md for staged addon acceptance.
 
-PROJECT_SPEC.md is the baseline. ADDON_01_NEW_FEATURES.md supplies mapped additions; docs/addon-phase-map.md records their actual delivery and dependencies.
+- Phase 0 complete: original Laravel/PHP foundation, staff auth/roles, Money/settings, bilingual shell and encrypted credential baseline.
+- Phase 1 complete: catalog/admin, media/variants/options, CSV, browsing/FULLTEXT, clone/tabs/badges and catalog portions of B1–B5.
+- Phase 2 complete: carts, live integer totals, coupons, BD location/shipping/tax, transactional COD/manual checkout, gifts, optional account setup, manual display currencies, receipt ownership and real MySQL concurrency evidence.
+- Phase 3 next: orders/status/payment verification/invoices/returns/customer auth and accounts, with verified identity before guest-order linking.
+- Phases 4–8 retain the original order and addon Section 12 mapping. No production deployment or whole-addon completion is claimed.
 
-- Phase 0: complete foundation; encrypted credential baseline backfilled under the addon.
-- Phase 1: catalog CRUD, media/variants/options/digital definitions, CSV, storefront/search, cloning/tabs/badges, catalog-side B1–B5.
-- Phase 2 next: cart, coupons, addresses/shipping/tax, checkout/order creation and addon gift/account-at-checkout/basic-currency work. Complete quick-view cart submission and cart-line badges here.
-- Phases 3–8 remain in their original order with addon's Section 12 mapping. No production deployment or complete store claim yet.
-
-Architecture: original Laravel 12 modular monolith; fixed PHP 8.3 / Filament 3 / Livewire 3 / Tailwind 4; MySQL normal use, SQLite quick start. Catalog schema is in the new migrations. Integer money is authoritative. External integrations remain fake/unimplemented until their explicit phases; no provider credentials are required now.
+Fixed modular Laravel stack, MySQL normally and SQLite quick start. All slow side effects are after commit; notification retry payloads stay encrypted/private. Full operational and verification instructions are in PROGRESS.md and the developer guide.

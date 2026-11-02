@@ -22,22 +22,12 @@ use App\Filament\Resources\ProductResource\Pages\EditProduct;
 use App\Filament\Resources\ProductResource\Pages\ListProducts;
 use App\Jobs\ImportCatalogCsv;
 use App\Livewire\CatalogBrowser;
-use App\Models\Admin;
-use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Livewire\Livewire;
 
-function catalogAdmin(string $role = 'super-admin'): Admin
-{
-    test()->seed(RolesAndPermissionsSeeder::class);
-    $admin = Admin::create(['name' => 'Catalog staff', 'email' => fake()->unique()->safeEmail(), 'password' => 'test-password']);
-    $admin->assignRole($role);
-
-    return $admin;
-}
 it('serves only published visible catalog products and redirects slug history', function () {
     $p = Product::factory()->create(['slug' => 'before']);
     $this->get('/product/before')->assertOk()->assertSee($p->name);

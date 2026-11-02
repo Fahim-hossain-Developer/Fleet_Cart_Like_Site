@@ -17,3 +17,20 @@ Badges can target products/categories with a date window and priority. Preferenc
 Import/Export accepts a new-product CSV with columns `sku,slug,name_en,name_bn,price,qty,status`; max 500 rows / 2 MB. Prices are integer minor units; status is `draft` or `active`. Valid rows import; errors report row numbers. Existing SKUs/slugs are rejected, never overwritten. Queue follows QUEUE_CONNECTION (sync locally); results belong to the importing staff member. Export contains base product fields, neutralizes spreadsheet formulas and requires catalog permission. CSV round-trip uses this documented simple-product contract; variants/media are managed in their dedicated forms.
 
 Use the bulk Update price, stock or categories action to set either numeric field (zero is valid) and/or attach categories to selected products. Blank numeric fields preserve current values; category assignment preserves existing categories. Changes are validated and logged.
+
+## Cart & Checkout (Phase 2)
+Checkout Preferences, tax classes/rates and currencies require `checkout.manage` (super admin by default). Shipping/location tools require `shipping.manage`; coupons require `marketing.manage` (also assigned to managers). Orders is a read-only intake list for `orders.manage`; status/payment verification, refunds and fulfillment are Phase 3.
+
+The default local setup seeds factual Bangladesh location names and example Inside/Outside Dhaka flat rates (BDT 80/150). These are development examples, not current courier quotes. Configure actual delivery prices before sales. Production setup seeds locations/base currency but does not enable sample shipping rates. Locations are editable; the bundled snapshot contains 8 divisions, 64 districts and 494 upazilas and may lag official boundary changes. Add optional area records under upazilas to enable area dropdowns; where no area data exists, checkout uses free text.
+
+Shipping methods support flat, weight-based increments, free-above threshold and pickup, with explicit district coverage. Unsupported districts cannot silently receive free shipping. Define tax classes/rates, choose whether tax is included, and assign classes/weights on products. Percent rates use basis points (1000 = 10%). Included tax is reported separately from additional tax.
+
+Coupons support fixed, percent and free shipping, minimum spend, caps, dates, total and per-normalized-phone usage limits. Usage is rechecked and consumed atomically on placement. Advanced eligibility/cart rules remain Phase 5.
+
+Checkout Preferences selects one-page/three-step layout, order-number prefix, guest checkout, gift defaults/tax, account creation, and COD/bank/manual-mobile enable/instructions. Bank/mobile methods cannot place an order without configured instructions plus a transaction reference or private proof upload. Every COD/manual order starts unpaid; the application does not claim payment verification. Do not put provider credentials in public payment instructions.
+
+Gift messages, recipient details, fee and hide-price flag are order snapshots for later invoices/packing slips. Product gift fee overrides category fees; category fallback is the maximum assigned category fee. Per-line overrides are per unit and replace the order-wide default when present. Otherwise one default order fee applies. Full unfulfilled cancellation should refund the fee; fulfilled refund decisions belong to Phase 3.
+
+New optional accounts receive a one-hour single-use setup link through configured mail or the private local SMS log. Existing contact details remain guest orders; no automatic account attachment or login occurs. Full customer login/verification and address books are Phase 3. Disabling guest checkout requires that later login flow to be available.
+
+Currencies use manual ppm rates relative to BDT (1000000 = 1.0), decimals, display rounding and markup. The base rate/precision cannot be changed; all charges and authoritative totals remain BDT. Cards show display estimates; price filters are explicitly in BDT. Provider-backed rates arrive in Phase 6. Currency and language choices persist in session/cookies and authenticated profile fields.

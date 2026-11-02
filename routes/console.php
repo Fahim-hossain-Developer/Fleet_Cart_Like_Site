@@ -1,7 +1,12 @@
 <?php
 
+use App\Jobs\SendAccountSetup;
+use App\Jobs\SendOrderConfirmation;
 use App\Models\Admin;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schedule;
 use Illuminate\Support\Str;
 
 Artisan::command('app:create-admin', function () {
@@ -21,3 +26,23 @@ Artisan::command('app:create-admin', function () {
     $this->info('Admin: admin@example.com');
     $this->line('One-time password: '.$password);
 })->purpose('Create the first local admin with a random password printed once');
+
+Schedule::call(function (): void {
+    foreach (DB::table('order_notifications')->whereNull('sent_at')->where('attempts', '<', 3)->pluck('order_id') as $id) {
+        try {
+            SendOrderConfirmation::dispatch((int) $id);
+        } catch (Throwable $e) {
+            Log::warning('Order confirmation retry failed', ['order_id' => $id]);
+        }
+    }
+})->everyMinute()->name('order-confirmations')->withoutOverlapping();
+
+Schedule::call(function (): void {
+    foreach (DB::table('account_setup_tokens')->whereNull('sent_at')->whereNull('used_at')->where('expires_at', '>', now())->where('attempts', '<', 3)->pluck('id') as $id) {
+        try {
+            SendAccountSetup::dispatch((int) $id);
+        } catch (Throwable $e) {
+            Log::warning('Account setup retry failed', ['delivery_id' => $id]);
+        }
+    }
+})->everyMinute()->name('account-setup-deliveries')->withoutOverlapping();

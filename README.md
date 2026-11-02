@@ -1,6 +1,6 @@
 # Commerce CMS — Catalog
 
-Original Laravel ecommerce foundation. Read PROJECT_SPEC.md, PROGRESS.md and DECISIONS.md before work. The foundation and catalog provide product browsing and staff management. Checkout and order placement are the next phase.
+Original Laravel ecommerce foundation. Read PROJECT_SPEC.md, PROGRESS.md and DECISIONS.md before work. The foundation, catalog and checkout provide browsing, staff management and transactional COD/manual orders. Full order/customer management is next.
 
 ## Requirements
 PHP **8.3**, Composer 2, Node 22+ / npm, MySQL 8 or MariaDB 10.6+ normally. PHP extensions: bcmath, ctype, curl, dom, exif, fileinfo, gd (WebP/AVIF), intl, mbstring, openssl, PDO MySQL/SQLite, tokenizer, xml, zip. SQLite is supported for quick local use.
@@ -38,4 +38,13 @@ Managed cloud without native PHP: build the image with `docker build --secret id
 
 Optional original local sample data: `php artisan db:seed --class=CatalogSeeder` (cloud: prefix with `scripts/cloud`). It creates six bilingual products and original generated sample images, without real brand assets. Sample seeding is opt-in; replace sample images before launch. Catalog CRUD, variants, tabs, badges and CSV instructions are in `docs/admin-guide.md`; addon scheduling is in `docs/addon-phase-map.md`.
 
-Catalog browsing and product options are available; cart/checkout/order submission remains Phase 2. No online gateway or real customer order is simulated. The test suite includes committed-data integration tests and must use a disposable database. `composer ci` runs all current checks.
+Catalog browsing and options connect to the Phase 2 cart/checkout described below. No online gateway verification is simulated. The test suite includes committed-data integration tests and must use a disposable database. `composer ci` runs all current checks.
+
+## Phase 2 cart & checkout
+Apply new migrations and seed base configuration with `composer setup` (cloud: `scripts/cloud composer setup`). Existing data, credentials and keys are preserved. `/cart` and `/checkout` now place real local database orders with COD, configured bank transfer or configured manual mobile payment. Every such order remains unpaid until the later staff-verification workflow; no live gateway is called.
+
+Configure shipping, tax, currencies, coupons and Checkout Preferences in `/admin`. Default local shipping prices are examples only. Address entry currently targets Bangladesh; international address/country workflows remain later platform work. See the admin guide for minor-unit prices, gifts, account setup and manual rates.
+
+For background retries, run `php artisan schedule:work` locally (cloud prefix: `scripts/cloud`), or schedule `php artisan schedule:run` each minute on a server. Sync is the local queue default; database queue additionally requires a worker. Mail and SMS use log delivery locally. Private logs can contain test setup links and must never be published.
+
+`composer ci` runs SQLite tests and explicitly skips three MySQL concurrency checks. Run the same suite against a disposable MySQL 8 test database to execute them. Full order/customer management is the next phase, not part of this checkout delivery.

@@ -1,2 +1,2 @@
 # Ecommerce progress
-Phase 0 foundation and Phase 1 catalog are implemented and verified. PROGRESS.md is the authoritative record of commands, evidence, deferred dependencies and the next step. docs/addon-phase-map.md tracks the addon across phases. Next: Phase 2 only when the user continues.
+Phases 0–2 are implemented and verified within their recorded scope. PROGRESS.md contains current evidence, limitations and startup instructions; docs/addon-phase-map.md tracks addon dependencies. Phase 1 history is archived under docs/history. Next: Phase 3 — Orders & Customers, only when authorized.

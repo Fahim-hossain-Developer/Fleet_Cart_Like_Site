@@ -1,0 +1,1 @@
+<x-filament-panels::page><p>{{ __('checkout.preferences_notice') }}</p><form wire:submit="submit">{{ $this->form }}<x-filament::button type="submit" class="mt-5">{{ __('checkout.save') }}</x-filament::button></form></x-filament-panels::page>

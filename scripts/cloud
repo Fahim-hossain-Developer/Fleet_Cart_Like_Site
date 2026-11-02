@@ -14,7 +14,7 @@ if getent hosts proxy >/dev/null 2>&1; then
 fi
 mkdir -p /workspace/.composer-cache
 exec docker run --rm --user "$(id -u):$(id -g)" "${cloud_args[@]}" \
-    -e COMPOSER_HOME=/tmp/composer -e COMPOSER_CAFILE=/run/ca.pem \
+    -e XDG_CONFIG_HOME=/tmp/commerce-config -e COMPOSER_HOME=/tmp/composer -e COMPOSER_CAFILE=/run/ca.pem \
     -e GIT_SSL_CAINFO=/run/ca.pem -e SSL_CERT_FILE=/run/ca.pem -e NODE_EXTRA_CA_CERTS=/run/ca.pem \
     -v "$trust_bundle:/run/ca.pem:ro" -v /workspace/.composer-cache:/tmp/composer \
     -v "$repo_root:/app" -w /app commerce-php83 "$@"

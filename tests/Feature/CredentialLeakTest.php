@@ -21,7 +21,7 @@ it('crawls existing storefront routes for credential leaks and provides the base
     $p = Product::factory()->create();
     $c = Category::factory()->create();
     $p->categories()->attach($c);
-    foreach (['/', '/shop', '/category/'.$c->slug, '/product/'.$p->slug, '/search?q=test'] as $route) {
+    foreach (['/', '/shop', '/category/'.$c->slug, '/product/'.$p->slug, '/search?q=test', '/cart'] as $route) {
         $html = $this->get($route)->assertOk()->getContent();
         expect($html)->not->toContain($sentinel)->not->toContain('sk_live_')->not->toContain('private_key');
     }

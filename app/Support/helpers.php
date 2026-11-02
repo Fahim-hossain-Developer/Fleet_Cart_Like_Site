@@ -2,6 +2,7 @@
 
 use App\Domain\Catalog\Models\Attribute;
 use App\Domain\Catalog\Models\ProductVariant;
+use App\Domain\Settings\Actions\CurrencyDisplay;
 use App\Domain\Settings\Actions\Settings;
 
 function store_setting(string $key, mixed $default = null): mixed
@@ -11,9 +12,7 @@ function store_setting(string $key, mixed $default = null): mixed
 
 function catalog_money(int $minor): string
 {
-    $currency = (string) store_setting('currency', 'BDT');
-
-    return config('catalog.currency_symbols.'.$currency, $currency).' '.number_format($minor / 100, 2, '.', ',');
+    return app(CurrencyDisplay::class)->format($minor);
 }
 function catalog_variant_label(ProductVariant $variant): string
 {

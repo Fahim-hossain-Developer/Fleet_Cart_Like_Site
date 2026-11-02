@@ -19,3 +19,18 @@ Livewire CatalogBrowser owns URL filter/view state and locked quick-view/route I
 MySQL InnoDB FULLTEXT indexes only committed records. Search integration tests therefore use DatabaseMigrations in tests/Integration, separately from transaction-isolated feature tests. Run these only against a disposable test database; do not point the test suite at development or production data.
 
 The credential vault stores encrypted_value separately from ordinary setting values; it is hidden from serialization and excluded from audit fields. No storefront component receives the vault. Current leak tests cover existing storefront routes with a sentinel credential; add cart/checkout/landing and built-asset scans as those workflows arrive. Security Scan/alerts are still later-phase work.
+
+## Phase 2 checkout invariants
+CartSession uses an unpredictable session token for guest carts and a locked user row for authenticated cart lookup/merge. CartManager scopes mutations to that cart. Cart and item policies describe ownership; no public cart-ID lookup exists. File options and payment proofs stay private. Product/variant IDs and option values are validated server-side; no client prices are used.
+
+QuoteCart refreshes published products, active variants and options, aggregates stock across option lines, enforces product/order limits, and snapshots readable option labels. Percentage options round once per line. PriceCalculator distributes coupon discount exactly, then calculates shipping, gift and line taxes. All authoritative values are integer minor units; bcmath prevents intermediate allocation/FX overflow. The current platform cap is 100 lines, 100 units per line/product stock group and 100000000000 minor-unit cart subtotal.
+
+PlaceOrder locks the cart, reads live inventory in stable order, locks coupons, revalidates address hierarchy/methods and writes order/items/usages/events atomically. Inventory is deducted on placement in this phase. Unique request keys plus the cart lock make retries return the same order. The database unique order-number constraint backs random collision-checked suffixes and a configurable prefix. Order success requires session receipt access or matching authenticated owner.
+
+Emails/setup delivery happen after commit through durable retry records. Scheduler tasks retry pending records (maximum three attempts); run schedule:run every minute or schedule:work locally. With sync queue, normal delivery is immediate and no worker is needed. If switching to database queue, start queue:work too. Email delivery is at-least-once under ambiguous transport failures; partial delivery may be repeated on retry. Local SMS log is a development driver only.
+
+Setup tokens are SHA-256 hashed for validation; encrypted delivery payloads are cleared after sending. Matching a contact never proves identity. Do not implement guest-order linking until phone/email verification in Phase 3. Confirmation/status and gift invoice policies are also later-phase work.
+
+The bundled location dataset's source/license/counts are in database/data/README.md. Operational configuration is audited, policies are permission-scoped and defaults are non-destructive. Test factories cover new entities; common fixtures live in tests/Support so file-filtered tests can run independently.
+
+Concurrency tests launch independent PHP processes on MySQL and verify last-unit competition, one-use coupons and simultaneous duplicate submissions. SQLite deliberately skips those three tests; it does not establish row-lock behavior. Never point integration tests at non-disposable data.
