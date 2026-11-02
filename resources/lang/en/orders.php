@@ -53,7 +53,7 @@ return [
     'discount' => 'Discount',
     'shipping' => 'Delivery',
     'gift_fee' => 'Gift wrapping',
-    'tax' => 'Tax',
+    'tax' => 'Added tax',
     'tax_included' => 'Tax already included',
     'paid_amount' => 'Paid',
     'refunded_amount' => 'Refunded',

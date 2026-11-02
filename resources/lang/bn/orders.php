@@ -53,7 +53,7 @@ return [
     'discount' => 'ছাড়',
     'shipping' => 'ডেলিভারি',
     'gift_fee' => 'উপহার মোড়ানো',
-    'tax' => 'কর',
+    'tax' => 'অতিরিক্ত কর',
     'tax_included' => 'মূল্যে অন্তর্ভুক্ত কর',
     'paid_amount' => 'পরিশোধিত',
     'refunded_amount' => 'ফেরত দেওয়া অর্থ',

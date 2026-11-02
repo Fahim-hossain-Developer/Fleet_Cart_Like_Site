@@ -5,6 +5,8 @@ use App\Domain\Cart\Actions\CartSession;
 use App\Domain\Cart\Actions\QuoteCart;
 use App\Domain\Catalog\Models\ProductDownload;
 use App\Domain\Catalog\Models\ProductVariant;
+use App\Domain\Checkout\Models\TaxClass;
+use App\Domain\Checkout\Models\TaxRate;
 use App\Domain\Customers\Actions\EmailCode;
 use App\Domain\Customers\Actions\SaveAddress;
 use App\Domain\Customers\Models\Address;
@@ -438,4 +440,19 @@ it('still throttles password attempts without consuming registration allowance',
     }
     $this->post('/login', ['identifier' => 'unknown@example.test', 'password' => 'wrong-password'])->assertStatus(429);
     $this->post('/register', [])->assertRedirect()->assertSessionHasErrors('email');
+});
+
+it('shows only added tax alongside the included-tax note in order details and invoices', function () {
+    Queue::fake();
+    $f = checkoutFixture();
+    $class = TaxClass::factory()->create();
+    TaxRate::factory()->create(['tax_class_id' => $class->id, 'country' => 'BD', 'district_id' => null, 'inclusive' => true, 'rate_bps' => 1000, 'is_active' => true]);
+    $f['product']->update(['price' => 110000, 'tax_class_id' => $class->id]);
+    $o = app(PlaceOrder::class)->execute($f['cart'], $f['data']);
+    $u = User::factory()->create();
+    $o->update(['user_id' => $u->id]);
+    expect($o->tax_included)->toBe(10000)->and($o->total)->toBe(118000);
+    $this->actingAs($u, 'web')->get('/account/orders/'.$o->number)->assertOk()->assertSeeInOrder(['Added tax', 'BDT 0.00', 'Tax already included', 'BDT 100.00']);
+    $html = view('pdf.order', ['order' => $o->load('items'), 'type' => 'invoice'])->render();
+    expect($html)->toMatch('/Added tax<\/td><td class="money">BDT 0\.00/')->toMatch('/Tax already included<\/td><td class="money">BDT 100\.00/');
 });
