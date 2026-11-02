@@ -1,6 +1,6 @@
-# Commerce CMS — Phase 0
+# Commerce CMS — Catalog
 
-Original Laravel ecommerce foundation. Read PROJECT_SPEC.md, PROGRESS.md and DECISIONS.md before work. Phase 0 supplies a storefront shell and staff dashboard; it does not yet sell products.
+Original Laravel ecommerce foundation. Read PROJECT_SPEC.md, PROGRESS.md and DECISIONS.md before work. The foundation and catalog provide product browsing and staff management. Checkout and order placement are the next phase.
 
 ## Requirements
 PHP **8.3**, Composer 2, Node 22+ / npm, MySQL 8 or MariaDB 10.6+ normally. PHP extensions: bcmath, ctype, curl, dom, exif, fileinfo, gd (WebP/AVIF), intl, mbstring, openssl, PDO MySQL/SQLite, tokenizer, xml, zip. SQLite is supported for quick local use.
@@ -32,3 +32,10 @@ Queue is sync, cache file, mail log, storage public. SMS/courier/payment config 
 VPS and cPanel are target platforms; production deployment/release packaging and full deployment guides are Phase 6 work. This Phase 0 app is not a production-ready store.
 
 Managed cloud without native PHP: build the image with `docker build --secret id=proxy_ca,src=/etc/ssl/certs/ca-certificates.crt -t commerce-php83 -f docker/php/Dockerfile .`, then use `scripts/cloud composer install --prefer-source --no-interaction` and `scripts/cloud composer setup`. `scripts/cloud composer ci` runs the complete gate; `scripts/cloud serve` starts the server on port 8000. This helper assumes Linux and `/workspace`; use native tools or Compose on other machines. Git source fallback is slower but works when api.github.com distribution archives are unavailable.
+
+## Phase 1 catalog
+`/shop`, `/search`, `/category/{slug}`, `/brand/{slug}` and `/product/{slug}` now browse published catalog data. Staff catalog tools live under `/admin`. Run migrations after pulling updates: `php artisan migrate` (or `scripts/cloud php artisan migrate`).
+
+Optional original local sample data: `php artisan db:seed --class=CatalogSeeder` (cloud: prefix with `scripts/cloud`). It creates six bilingual products and original generated sample images, without real brand assets. Sample seeding is opt-in; replace sample images before launch. Catalog CRUD, variants, tabs, badges and CSV instructions are in `docs/admin-guide.md`; addon scheduling is in `docs/addon-phase-map.md`.
+
+Catalog browsing and product options are available; cart/checkout/order submission remains Phase 2. No online gateway or real customer order is simulated. The test suite includes committed-data integration tests and must use a disposable database. `composer ci` runs all current checks.
