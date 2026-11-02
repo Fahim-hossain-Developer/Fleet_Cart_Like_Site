@@ -130,7 +130,7 @@ final class CustomerAccountController extends Controller
             $o = Order::lockForUpdate()->findOrFail($row?->order_id);
             app(OrderAccess::class)->owner($o);
             $e = DownloadEntitlement::lockForUpdate()->findOrFail($entitlement->id);
-            abort_unless($o->payment_status === 'paid' && ! $o->refunded_amount && ! in_array($o->status, ['cancelled', 'failed']) && $e->enabled_at && (! $e->expires_at || now()->lt($e->expires_at)) && (! $e->limit || $e->used < $e->limit), 403);
+            abort_unless((! app()->environment('production') || $o->payment_environment !== 'sandbox') && $o->payment_status === 'paid' && ! $o->refunded_amount && ! in_array($o->status, ['cancelled', 'failed']) && $e->enabled_at && (! $e->expires_at || now()->lt($e->expires_at)) && (! $e->limit || $e->used < $e->limit), 403);
             if ($e->file) {
                 abort_unless(Storage::disk('local')->exists($e->file), 404);
             } else {

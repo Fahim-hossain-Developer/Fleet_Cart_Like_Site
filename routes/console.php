@@ -1,9 +1,15 @@
 <?php
 
+use App\Domain\Customers\Models\AdminLoginChallenge;
+use App\Domain\Customers\Models\SmsDelivery;
 use App\Domain\Orders\Models\OrderEvent;
+use App\Domain\Settings\Models\IntegrationEvent;
+use App\Jobs\ProcessPaymentEvent;
 use App\Jobs\SendAccountSetup;
+use App\Jobs\SendAdminCode;
 use App\Jobs\SendOrderConfirmation;
 use App\Jobs\SendOrderUpdate;
+use App\Jobs\SendSms;
 use App\Models\Admin;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
@@ -58,3 +64,22 @@ Schedule::call(function (): void {
         }
     }
 })->everyMinute()->name('order-updates')->withoutOverlapping();
+
+Schedule::call(function (): void {
+    foreach (IntegrationEvent::where('kind', 'payment')->where('status', 'received')->where('attempts', '<', 12)->limit(100)->pluck('id') as $id) {
+        ProcessPaymentEvent::dispatch((int) $id);
+    }
+})->everyMinute()->name('payment-events')->withoutOverlapping();
+Schedule::call(function (): void {
+    foreach (AdminLoginChallenge::whereNull('sent_at')->whereNull('used_at')->where('expires_at', '>', now())->where('delivery_attempts', '<', 3)->pluck('id') as $id) {
+        SendAdminCode::dispatch((int) $id);
+    }
+})->everyMinute()->name('admin-code-deliveries')->withoutOverlapping();
+
+Schedule::call(function (): void {
+    foreach (SmsDelivery::where('status', 'pending')->where('expires_at', '>', now())->where('attempts', '<', 3)->limit(100)->pluck('id') as $id) {
+        SendSms::dispatch((int) $id);
+    }
+    SmsDelivery::where('expires_at', '<=', now())->whereNull('sent_at')->update(['payload' => null, 'receiver' => null, 'status' => 'expired']);
+    AdminLoginChallenge::where('expires_at', '<=', now())->whereNotNull('delivery_payload')->update(['delivery_payload' => null]);
+})->everyMinute()->name('sms-deliveries')->withoutOverlapping();

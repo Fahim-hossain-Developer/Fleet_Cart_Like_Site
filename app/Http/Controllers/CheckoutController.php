@@ -7,6 +7,7 @@ use App\Domain\Checkout\Actions\CheckoutQuote;
 use App\Domain\Customers\Models\Address;
 use App\Domain\Orders\Actions\PlaceOrder;
 use App\Domain\Orders\Models\Order;
+use App\Domain\Payments\Actions\PaymentMethods;
 use App\Domain\Shipping\Models\Location;
 use App\Http\Requests\CheckoutRequest;
 use Illuminate\Contracts\View\View;
@@ -31,7 +32,7 @@ class CheckoutController extends Controller
             session(['checkout_key' => $key]);
         }
 
-        return view('themes.default.checkout', ['addresses' => auth('web')->check() ? Address::where('user_id', auth('web')->id())->orderByDesc('is_default')->get() : collect(), 'key' => $key, 'divisions' => Location::where('type', 'division')->get(), 'paymentMethods' => store_setting('checkout_payment_methods', config('checkout.payment_methods'))]);
+        return view('themes.default.checkout', ['addresses' => auth('web')->check() ? Address::where('user_id', auth('web')->id())->orderByDesc('is_default')->get() : collect(), 'key' => $key, 'divisions' => Location::where('type', 'division')->get(), 'paymentMethods' => app(PaymentMethods::class)->current()]);
     }
 
     public function quote(Request $request, CartSession $session): JsonResponse

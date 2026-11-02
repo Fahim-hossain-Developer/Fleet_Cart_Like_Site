@@ -2,6 +2,7 @@
 
 use App\Domain\Settings\Models\Currency;
 use App\Http\Controllers\AccountSetupController;
+use App\Http\Controllers\AdminCodeController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\CatalogExportController;
@@ -12,6 +13,8 @@ use App\Http\Controllers\CustomerAuthController;
 use App\Http\Controllers\LocationController;
 use App\Http\Controllers\OrderDocumentController;
 use App\Http\Controllers\OrderTrackingController;
+use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\PhoneCodeController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -89,3 +92,15 @@ Route::get('/admin/order-documents/{order}/{type}', [OrderDocumentController::cl
 Route::get('/admin/order-proofs/{order}', [OrderDocumentController::class, 'proof'])->middleware(['auth:admin', 'signed'])->name('admin.order.proof');
 
 Route::get('/admin/commerce-export/{type}', CommerceExportController::class)->middleware(['auth:admin', 'throttle:3,1,store-commerce-export'])->name('commerce.export');
+
+Route::get('/orders/{order:number}/pay', [PaymentController::class, 'order'])->name('payments.order');
+Route::post('/orders/{order:number}/pay', [PaymentController::class, 'start'])->middleware('throttle:10,1,payment-start')->name('payments.start');
+Route::get('/payments/{attempt:uuid}', [PaymentController::class, 'status'])->name('payments.status');
+Route::post('/payments/{attempt:uuid}/check', [PaymentController::class, 'check'])->middleware('throttle:10,1,payment-check')->name('payments.check');
+Route::match(['get', 'post'], '/payments/fake/{attempt:uuid}', [PaymentController::class, 'fake'])->middleware(['signed:relative', 'throttle:30,1,payment-fake'])->name('payments.fake');
+
+Route::get('/phone-code', [PhoneCodeController::class, 'show'])->name('phone-code');
+Route::post('/phone-code/send', [PhoneCodeController::class, 'send'])->middleware('throttle:5,1,phone-code-send')->name('phone-code.send');
+Route::post('/phone-code/verify', [PhoneCodeController::class, 'verify'])->middleware('throttle:10,1,phone-code-verify')->name('phone-code.verify');
+Route::get('/admin/email-code', [AdminCodeController::class, 'show'])->name('admin.otp');
+Route::post('/admin/email-code', [AdminCodeController::class, 'verify'])->middleware('throttle:10,1,admin-code-verify')->name('admin.otp.verify');

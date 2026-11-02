@@ -18,6 +18,7 @@
 <button class="btn-primary w-full">{{ __('orders.'.$mode) }}</button>
 </form>
 @endif
+<a class="btn-secondary" href="{{ route('phone-code') }}">{{ __('integrations.phone_otp') }}</a>
 <nav class="flex flex-wrap gap-4 text-sm text-brand">@foreach(['login','register','otp','forgot_password'] as $link)@if($mode!==$link)<a class="min-h-11 content-center underline" href="{{ route($link==='forgot_password'?'password.request':$link) }}">{{ __('orders.'.$link) }}</a>@endif @endforeach<a class="min-h-11 content-center underline" href="{{ route('shop') }}">{{ __('orders.continue_guest') }}</a></nav>
 </div>
 @endsection

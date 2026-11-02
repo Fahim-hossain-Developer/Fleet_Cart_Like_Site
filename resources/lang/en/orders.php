@@ -166,4 +166,6 @@ return [
     'variant_in_use' => 'This variant has order history. Disable it instead of deleting it.',
     'documents' => 'Documents',
     'manage_order' => 'Manage order',
+    'risk_paid_stock_unavailable' => 'Paid: inventory needs review',
+    'risk_gateway_high_risk' => 'Provider flagged payment risk',
 ];
