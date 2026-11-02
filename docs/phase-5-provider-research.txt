@@ -1,0 +1,11 @@
+Official provider references inspected 2026-11-03 Asia/Dhaka:
+Google web server OAuth: https://developers.google.com/identity/protocols/oauth2/web-server (HTTP 200)
+Google OIDC discovery: https://accounts.google.com/.well-known/openid-configuration (HTTP 200; auth/token/userinfo and S256)
+Facebook manual login: https://developers.facebook.com/docs/facebook-login/guides/advanced/manual-flow/ (HTTP 200; v26.0 auth/token/debug_token)
+Meta CAPI: https://developers.facebook.com/docs/marketing-api/conversions-api/using-the-api/ (HTTP 200; v26.0 events endpoint)
+Graph versions: https://developers.facebook.com/docs/graph-api/changelog/versions/ (HTTP 200; v26.0 current)
+Tawk help page was HTTP 403; no live widget verification claimed. Only existing property/widget embed IDs accepted; click-to-load.
+No credentials used and no external messages or provider login tests performed. Contract tests use Http::fake.
+TikTok standard events: https://ads.tiktok.com/help/article/standard-events-parameters?lang=en (HTTP 200; current Purchase event, not legacy CompletePayment)
+GA4 ecommerce: https://developers.google.com/analytics/devguides/collection/ga4/ecommerce (HTTP 200; items/transaction_id)
+Meta browser event dedup: https://developers.facebook.com/docs/meta-pixel/implementation/conversion-tracking/ (HTTP 200; eventID)

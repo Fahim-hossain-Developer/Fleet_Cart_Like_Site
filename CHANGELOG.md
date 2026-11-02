@@ -23,3 +23,12 @@
 - Customer password/email-code auth, reset, verified guest-order linking, session revocation, profiles, address books, order history/reorder/cancel/tracking, paid private downloads and privacy requests/exports.
 - Staff customer management, granular finance/export permissions, durable order updates and signed gift-safe invoice/packing/label PDFs with locally shaped Bangla.
 - SQLite feature coverage plus actual MySQL lifecycle/identity/idempotency races; Pango runtime/font bundles and operator/developer documentation.
+
+## Unreleased — Phase 5
+- Scheduled translated pages/blog/menu/slider/banner/FAQ and 21 typed homepage blocks, scoped previews and consented private contact inbox.
+- Flash SKU quotas and authoritative pricing, ordered automatic cart discounts and original order evidence; real best-seller badges and flash expiry/quota display.
+- Guest/account wishlists and bounded comparison, reviews/photos/moderation/Q&A, notification preferences and real stock/price/order/coupon/reply notices.
+- Newsletter double opt-in, fixed campaign audiences, opt-out-safe transport outboxes; consented cart capture with separate proof, scoped restoration and manual WhatsApp drafts.
+- Frequency-controlled popups, safe floating contact controls with measured mobile offset, real city-only social proof, split auth and configured secure Google/Facebook linking.
+- Published-only sitemaps/feeds, structured data/social tags/hreflang/redirects; independent tracking consent, opaque browser/server event IDs and durable Meta CAPI outbox.
+- Expanded secret-leak, privacy/replay/locking and responsive/Bangla/RTL evidence. Optional providers remain off without owner configuration; no live certification claim.

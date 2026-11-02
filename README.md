@@ -56,3 +56,5 @@ Apply migrations and refresh roles with `composer setup`. Managed cloud upgrades
 Use `/register`, `/login`, `/email-code`, `/account` and `/track-order` for customer workflows. Email OTP verifies ownership before linking guest orders. First verification revokes pre-verification passwords/sessions and allows setting a password in the verified account session. Local codes/reset links are delivered through private log mail. No default customer password is published.
 
 Staff use `/admin/orders`, `/admin/customers` and Phone Blacklists. Manual payments/refunds record checked receipts; they never send money or invoke a gateway. See [order-management.md](docs/order-management.md) for stock policies, partial shipments, RMA/refund/gift rules, private documents/downloads, permissions and limitations. Run `composer ci`; execute the same tests with disposable MySQL 8 credentials for actual race checks. Phase 4 is next and has not started.
+
+Content and marketing setup: [docs/marketing.md](docs/marketing.md). This includes newsletter/recovery consent, social sign-in, SEO/feeds and optional analytics. Read [PROGRESS.md](PROGRESS.md) for exact phase evidence and limitations.
