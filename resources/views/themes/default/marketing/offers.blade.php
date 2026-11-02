@@ -1,0 +1,8 @@
+@extends('themes.default.layout')
+@section('title',__('marketing.offers'))
+@section('content')
+<h1 class="mb-8 text-4xl font-semibold">{{ __('marketing.offers') }}</h1><div class="grid grid-cols-2 gap-5 md:grid-cols-4">@forelse($products as $product)@include('themes.default.partials.card',['item'=>$product])@empty<p>{{ __('marketing.no_flash_offers') }}</p>@endforelse</div><h2 class="my-8 text-2xl font-semibold">{{ __('marketing.public_coupons') }}</h2><div class="grid gap-5 md:grid-cols-2">@forelse($coupons as $coupon)@if($coupon->usage_limit===null||$coupon->used<$coupon->usage_limit)<article class="space-y-4 rounded-xl border bg-white p-6"><h3 class="text-2xl font-semibold">{{ $coupon->code }}</h3><p>{{ __('checkout.'.$coupon->type) }} · {{ $coupon->type==='percent'?$coupon->value.'%':catalog_money($coupon->value) }}</p><p>{{ __('marketing.minimum') }}: {{ catalog_money($coupon->minimum) }}</p>@if($coupon->ends_at)<p>{{ __('content.ends_at') }}: {{ $coupon->ends_at->format('d M Y H:i') }}</p>@endif @auth('web')<form method="POST" action="{{ route('coupon.save') }}">@csrf
+<input type="hidden" name="code" value="{{ $coupon->code }}"><button class="btn-secondary">{{ __('marketing.save_coupon') }}</button></form>@endauth</article>@endif @empty<p>{{ __('marketing.no_public_coupons') }}</p>@endforelse</div>
+@auth('web')<form class="mt-8 flex flex-wrap items-end gap-4 rounded-xl border bg-white p-6" method="POST" action="{{ route('coupon.save') }}">@csrf
+<label>{{ __('marketing.save_known_coupon') }}<input name="code" required maxlength="50" class="mt-2 block rounded-lg border p-3"></label><button class="btn-primary">{{ __('marketing.save_coupon') }}</button></form>@endauth
+@endsection

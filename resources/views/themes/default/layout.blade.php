@@ -19,8 +19,8 @@
     <header class="border-b border-stone-200 bg-white">
         <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-5 py-5">
             <a href="{{ route('home') }}" class="text-xl font-bold tracking-tight md:text-2xl">{{ store_setting('name') }}<span class="text-brand">.</span></a>
-            <nav aria-label="{{ __('store.navigation') }}" class="hidden gap-6 md:flex"><a href="{{ route('home') }}" aria-current="page" class="min-h-11 content-center font-medium">{{ __('store.home') }}</a><a href="{{ route('shop') }}" class="min-h-11 content-center">{{ __('catalog.shop') }}</a></nav>
-            <div class="flex flex-wrap items-center gap-2"><a class="min-h-11 content-center px-2" href="{{ auth('web')->check()?route('account'):route('login') }}">{{ __('orders.account') }}</a><a class="min-h-11 content-center px-2" href="{{ route('track-order') }}">{{ __('orders.tracking') }}</a><livewire:mini-cart />
+            <nav aria-label="{{ __('store.navigation') }}" class="hidden gap-6 md:flex">@if($headerItems=app(\App\Domain\Content\Actions\Navigation::class)->tree('header'))@include('themes.default.content.menu',['items'=>$headerItems])@else<a href="{{ route('home') }}" aria-current="page" class="min-h-11 content-center font-medium">{{ __('store.home') }}</a><a href="{{ route('shop') }}" class="min-h-11 content-center">{{ __('catalog.shop') }}</a>@endif</nav>
+            <div class="flex flex-wrap items-center gap-2"><a class="min-h-11 content-center px-2" href="{{ auth('web')->check()?route('account'):route('login') }}">{{ __('orders.account') }}</a><a class="min-h-11 content-center px-2" href="{{ route('track-order') }}">{{ __('orders.tracking') }}</a><a href="{{ route('wishlist') }}" class="min-h-11 content-center px-2">{{ __('marketing.wishlist') }}</a><a href="{{ route('compare') }}" class="min-h-11 content-center px-2">{{ __('marketing.compare') }}</a>@auth('web')<a class="min-h-11 content-center px-2" href="{{ route('notifications') }}">{{ __('marketing.notifications') }} ({{ \App\Domain\Customers\Models\StoreNotification::where('notifiable_type',\App\Models\User::class)->where('notifiable_id',auth('web')->id())->where('data->in_app',true)->whereNull('read_at')->count() }})</a>@endauth<livewire:mini-cart />
 @unless(store_setting('catalog_top_bar',true))                <form action="{{ route('locale.update') }}" method="POST">@csrf
                     <label for="locale" class="sr-only">{{ __('store.language') }}</label>
                     <select id="locale" name="locale" class="min-h-11 rounded-lg border border-stone-300 px-2" onchange="this.form.requestSubmit()">
@@ -34,12 +34,12 @@
         <div x-cloak x-show="menuOpen" class="fixed inset-0 z-50 bg-black/30 md:hidden" @click.self="menuOpen = false">
             <nav id="mobile-menu" x-trap.inert.noscroll="menuOpen" aria-label="{{ __('store.navigation') }}" class="h-full w-72 bg-white p-6">
                 <button x-ref="closeMenu" class="mb-8 min-h-11 rounded-lg border px-4" @click="menuOpen = false">{{ __('store.close') }}</button>
-                <a href="{{ route('home') }}" class="block min-h-11 py-3">{{ __('store.home') }}</a><a href="{{ route('shop') }}" class="block min-h-11 py-3">{{ __('catalog.shop') }}</a>
+                @if($mobileItems=app(\App\Domain\Content\Actions\Navigation::class)->tree('mobile'))@include('themes.default.content.menu',['items'=>$mobileItems])@else<a href="{{ route('home') }}" class="block min-h-11 py-3">{{ __('store.home') }}</a><a href="{{ route('shop') }}" class="block min-h-11 py-3">{{ __('catalog.shop') }}</a>@endif
             </nav>
         </div>
     </header>
     <main id="main" class="mx-auto max-w-6xl px-5 py-16">@if(session('status'))<p class="mb-5 rounded-xl bg-emerald-50 p-4" role="status">{{ session('status') }}</p>@endif @if($errors->any())<div role="alert" class="mb-5 rounded-xl bg-rose-50 p-4 text-rose-800">@foreach($errors->all() as $error)<p>{{ $error }}</p>@endforeach</div>@endif @yield('content')</main>
-    <footer class="border-t border-stone-200 bg-white"><div class="mx-auto flex max-w-6xl flex-wrap justify-between gap-4 px-5 py-8"><span class="font-semibold">{{ store_setting('name') }}</span><p class="text-sm text-stone-600">{{ __('store.footer') }}</p></div></footer>
+    <footer class="border-t border-stone-200 bg-white"><div class="mx-auto flex max-w-6xl flex-wrap justify-between gap-4 px-5 py-8"><span class="font-semibold">{{ store_setting('name') }}</span><p class="text-sm text-stone-600">{{ __('store.footer') }}</p><nav class="flex flex-wrap gap-6" aria-label="{{ __('content.footer_navigation') }}">@include('themes.default.content.menu',['items'=>app(\App\Domain\Content\Actions\Navigation::class)->tree('footer')])</nav></div></footer>
     @livewireScripts
 </body>
 </html>

@@ -1,0 +1,6 @@
+@extends('themes.default.layout')
+@section('title',__('content.contact'))
+@section('content')
+<div class="mx-auto max-w-2xl space-y-6"><h1 class="text-4xl font-semibold">{{ __('content.contact') }}</h1><p class="text-stone-600">{{ __('content.contact_help') }}</p><form method="POST" action="{{ route('contact.store') }}" class="space-y-5 rounded-2xl border bg-white p-6">@csrf
+<x-account-input name="name" required autocomplete="name" maxlength="100"/><x-account-input name="email" type="email" required autocomplete="email" maxlength="254"/><label class="block" for="contact-message">{{ __('content.message') }}<textarea id="contact-message" name="message" required minlength="10" maxlength="5000" rows="7" class="mt-2 w-full rounded-lg border p-3">{{ old('message') }}</textarea></label><div class="hidden" aria-hidden="true"><label for="contact-website">Website</label><input id="contact-website" name="website" tabindex="-1" autocomplete="off"></div><label class="flex min-h-11 items-start gap-3"><input name="consent" type="checkbox" value="1" required class="mt-1">{{ __('content.contact_consent') }}</label><button class="btn-primary">{{ __('content.send_message') }}</button></form></div>
+@endsection

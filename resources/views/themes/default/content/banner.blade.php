@@ -1,0 +1,3 @@
+<article class="overflow-hidden rounded-2xl border bg-white">@if($banner->url)<a href="{{ $banner->url }}" class="block">@endif
+@if($banner->image)<picture>@if($banner->mobile_image)<source media="(max-width:640px)" srcset="{{ \App\Domain\Content\Actions\SafeContent::imageUrl($banner->mobile_image) }}">@endif<img src="{{ \App\Domain\Content\Actions\SafeContent::imageUrl($banner->image) }}" alt="{{ $banner->title }}" loading="lazy" width="1200" height="500" class="aspect-[12/5] w-full object-cover"></picture>@endif
+<div class="p-6"><h3 class="text-xl font-semibold">{{ $banner->title }}</h3>@if($banner->excerpt)<p class="mt-2">{{ $banner->excerpt }}</p>@endif</div>@if($banner->url)</a>@endif</article>

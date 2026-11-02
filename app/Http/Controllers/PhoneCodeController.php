@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Domain\Customers\Actions\PhoneCode;
+use App\Domain\Customers\Actions\ProductLists;
 use Illuminate\Http\Request;
 
 final class PhoneCodeController extends Controller
@@ -27,6 +28,8 @@ final class PhoneCodeController extends Controller
         auth('web')->login($u);
         $r->session()->regenerate();
         $r->session()->put('customer_auth_version', $u->auth_version);
+
+        app(ProductLists::class)->mergeGuest($u);
 
         return redirect()->route('account');
     }

@@ -8,17 +8,24 @@ use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\CatalogExportController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\CommerceExportController;
+use App\Http\Controllers\ContactController;
+use App\Http\Controllers\ContentController;
 use App\Http\Controllers\CustomerAccountController;
 use App\Http\Controllers\CustomerAuthController;
 use App\Http\Controllers\LocationController;
+use App\Http\Controllers\NewsletterController;
+use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\OffersController;
 use App\Http\Controllers\OrderDocumentController;
 use App\Http\Controllers\OrderTrackingController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PhoneCodeController;
+use App\Http\Controllers\ProductFeedbackController;
+use App\Http\Controllers\ProductListController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-Route::view('/', 'themes.default.home')->name('home');
+Route::get('/', [ContentController::class, 'home'])->name('home');
 Route::get('/shop', [CatalogController::class, 'shop'])->name('shop');
 Route::get('/search', [CatalogController::class, 'shop'])->middleware('throttle:60,1,store-search')->name('search');
 Route::get('/category/{slug}', [CatalogController::class, 'shop'])->name('category');
@@ -104,3 +111,41 @@ Route::post('/phone-code/send', [PhoneCodeController::class, 'send'])->middlewar
 Route::post('/phone-code/verify', [PhoneCodeController::class, 'verify'])->middleware('throttle:10,1,phone-code-verify')->name('phone-code.verify');
 Route::get('/admin/email-code', [AdminCodeController::class, 'show'])->name('admin.otp');
 Route::post('/admin/email-code', [AdminCodeController::class, 'verify'])->middleware('throttle:10,1,admin-code-verify')->name('admin.otp.verify');
+
+Route::get('/page/{slug}', [ContentController::class, 'page'])->name('page');
+Route::get('/blog', [ContentController::class, 'blog'])->name('blog');
+Route::get('/blog/{slug}', [ContentController::class, 'post'])->name('blog.post');
+Route::get('/faq', [ContentController::class, 'faq'])->name('faq');
+Route::get('/admin/content-preview/{kind}/{id}', [ContentController::class, 'preview'])->middleware(['auth:admin', 'signed'])->name('content.preview');
+
+Route::get('/contact', [ContactController::class, 'show'])->name('contact');
+Route::post('/contact', [ContactController::class, 'store'])->middleware('throttle:5,60,store-contact')->name('contact.store');
+
+Route::get('/wishlist', [ProductListController::class, 'wishlist'])->name('wishlist');
+Route::get('/compare', [ProductListController::class, 'compare'])->name('compare');
+Route::post('/product-lists/{kind}', [ProductListController::class, 'store'])->middleware('throttle:60,1,product-lists')->name('product-list.store');
+
+Route::middleware('auth:web')->group(function () {
+    Route::get('/account/notifications', [NotificationController::class, 'index'])->name('notifications');
+    Route::post('/account/notifications/read-all', [NotificationController::class, 'readAll'])->middleware('throttle:30,1,notice-read-all')->name('notifications.read-all');
+    Route::post('/account/notifications/{notification}/read', [NotificationController::class, 'read'])->middleware('throttle:60,1,notice-read')->name('notifications.read');
+    Route::post('/account/notification-preferences', [NotificationController::class, 'preferences'])->middleware('throttle:20,1,notice-preferences')->name('notifications.preferences');
+    Route::post('/products/{product}/watch', [NotificationController::class, 'watch'])->middleware('throttle:30,1,product-watch')->name('product.watch');
+});
+
+Route::post('/account/product-alerts/{watch}/stop', [NotificationController::class, 'stop'])->middleware(['auth:web', 'throttle:30,1,product-watch-stop'])->name('product.watch.stop');
+
+Route::middleware('auth:web')->group(function () {
+    Route::post('/products/{product}/reviews', [ProductFeedbackController::class, 'review'])->middleware('throttle:5,60,product-review-submit')->name('product.review');
+    Route::post('/products/{product}/questions', [ProductFeedbackController::class, 'question'])->middleware('throttle:5,60,product-question-submit')->name('product.question');
+    Route::post('/reviews/{review}/helpful', [ProductFeedbackController::class, 'vote'])->middleware('throttle:60,1,review-helpful')->name('review.vote');
+    Route::get('/account/reviews', [ProductFeedbackController::class, 'account'])->name('account.reviews');
+});
+
+Route::post('/newsletter', [NewsletterController::class, 'subscribe'])->middleware('throttle:5,60,newsletter-signup')->name('newsletter.subscribe');
+Route::get('/newsletter/confirm/{token}', [NewsletterController::class, 'confirm'])->middleware('throttle:20,1,newsletter-confirm')->name('newsletter.confirm');
+Route::match(['get', 'post'], '/newsletter/unsubscribe/{token}', [NewsletterController::class, 'unsubscribe'])->middleware('throttle:30,1,newsletter-unsubscribe')->name('newsletter.unsubscribe');
+
+Route::get('/offers', [OffersController::class, 'index'])->name('offers');
+Route::post('/account/saved-coupons', [OffersController::class, 'save'])->middleware(['auth:web', 'throttle:10,1,coupon-reminder-save'])->name('coupon.save');
+Route::post('/account/saved-coupons/{saved}/remove', [OffersController::class, 'remove'])->middleware(['auth:web', 'throttle:30,1,coupon-reminder-remove'])->name('coupon.remove');

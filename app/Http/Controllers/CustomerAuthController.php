@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Domain\Cart\Actions\CartSession;
 use App\Domain\Customers\Actions\EmailCode;
 use App\Domain\Customers\Actions\NormalizePhone;
+use App\Domain\Customers\Actions\ProductLists;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -33,6 +34,7 @@ final class CustomerAuthController extends Controller
         $r->session()->put('customer_auth_version', Auth::guard('web')->user()->auth_version);
         Auth::guard('web')->user()->forceFill(['last_login_at' => now()])->save();
         app(CartSession::class)->current();
+        app(ProductLists::class)->mergeGuest(Auth::guard('web')->user());
 
         return redirect()->intended(route('account'));
     }

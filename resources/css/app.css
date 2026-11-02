@@ -14,3 +14,14 @@ html[lang="bn"] { font-family: 'Noto Sans Bengali', 'Inter', sans-serif; }
 .btn-primary { @apply inline-flex min-h-11 items-center justify-center rounded-lg bg-brand px-5 py-3 font-semibold text-white; }
 .btn-secondary { @apply inline-flex min-h-11 items-center justify-center rounded-lg border border-stone-300 bg-white px-5 py-3 font-medium; }
 }
+
+@layer components {
+ .content-prose { @apply space-y-5 leading-8 break-words; }
+ .content-prose h2 { @apply mt-8 text-2xl font-semibold; }
+ .content-prose h3 { @apply mt-6 text-xl font-semibold; }
+ .content-prose a { @apply text-brand underline; }
+ .content-prose ul { @apply list-disc ps-6; }
+ .content-prose ol { @apply list-decimal ps-6; }
+ .content-prose img { @apply h-auto max-w-full rounded-xl; }
+ .content-prose table { @apply block max-w-full overflow-x-auto; }
+}
