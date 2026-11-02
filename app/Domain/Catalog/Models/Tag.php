@@ -6,6 +6,7 @@ use Database\Factories\TagFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
+/** @property string $name */
 class Tag extends CatalogModel
 {
     /** @use HasFactory<TagFactory> */

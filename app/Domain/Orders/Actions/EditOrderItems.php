@@ -3,6 +3,7 @@
 namespace App\Domain\Orders\Actions;
 
 use App\Domain\Checkout\Actions\PriceCalculator;
+use App\Domain\Marketing\Models\FlashAllocation;
 use App\Domain\Orders\Models\Order;
 use App\Domain\Payments\Actions\PendingOperations;
 use Illuminate\Support\Facades\DB;
@@ -18,6 +19,9 @@ final class EditOrderItems
             $o = Order::lockForUpdate()->findOrFail($order->id);
             if ($o->shipments()->exists() || $o->paid_amount || ! in_array($o->status, ['pending', 'confirmed', 'processing', 'packed', 'on-hold'])) {
                 throw ValidationException::withMessages(['order' => __('orders.invalid_operation')]);
+            }
+            if (FlashAllocation::whereIn('order_item_id', $o->items()->pluck('id'))->exists()) {
+                throw ValidationException::withMessages(['order' => __('marketing.flash_edit_blocked')]);
             }
             $wasDeducted = $o->items()->where('stock_deducted', '>', 0)->exists();
             app(PendingOperations::class)->mutable($o);

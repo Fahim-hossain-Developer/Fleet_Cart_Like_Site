@@ -2,6 +2,7 @@
 
 namespace App\Domain\Catalog\Models;
 
+use App\Domain\Marketing\Actions\FlashPricing;
 use Database\Factories\ProductFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -134,13 +135,18 @@ class Product extends CatalogModel implements HasMedia
 
     public function currentPrice(): int
     {
+        return app(FlashPricing::class)->quote($this, null, $this->basePrice())['price'];
+    }
+
+    public function basePrice(): int
+    {
         return $this->special_price !== null && (! $this->special_from || $this->special_from->isPast()) && (! $this->special_to || $this->special_to->isFuture()) ? $this->special_price : $this->price;
     }
 
     public function displayPrice(): int
     {
         if ($this->type === 'variable') {
-            return (int) ($this->variants->where('is_active', true)->map(fn ($v) => $v->special_price ?? $v->price)->min() ?? $this->currentPrice());
+            return (int) ($this->variants->where('is_active', true)->map(fn ($v) => app(FlashPricing::class)->variant($this, $v))->min() ?? $this->currentPrice());
         }
 
         return $this->currentPrice();

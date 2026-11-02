@@ -5,6 +5,7 @@ namespace App\Domain\Cart\Actions;
 use App\Domain\Cart\Models\Cart;
 use App\Domain\Catalog\Models\Product;
 use App\Domain\Catalog\Models\ProductVariant;
+use App\Domain\Marketing\Actions\FlashPricing;
 use Illuminate\Validation\ValidationException;
 
 final class QuoteCart
@@ -34,13 +35,14 @@ final class QuoteCart
             $stock[$stockKey] = ($stock[$stockKey] ?? 0) + $item->qty;
             app(CartManager::class)->assertStock($product, $variant, $stock[$stockKey]);
             $options = app(OptionPricing::class)->execute($product, $item->options, $cart->token, true);
-            $unit = $variant->special_price ?? $variant->price ?? $product->currentPrice();
+            $flash = app(FlashPricing::class)->quote($product, $variant, $variant->special_price ?? $variant->price ?? $product->basePrice(), $stock[$stockKey], $lock);
+            $unit = $flash['price'];
             $subtotal = ($unit + $options['fixed']) * $item->qty + intdiv($unit * $item->qty * $options['percent'] + 50, 100);
             $runningTotal += $subtotal;
             if ($runningTotal > 100000000000) {
                 throw ValidationException::withMessages(['cart' => __('checkout.amount_limit')]);
             }
-            $lines[] = ['cart_item_id' => $item->id, 'product' => $product, 'variant' => $variant, 'product_id' => $product->id, 'variant_id' => $variant?->id, 'name' => $product->name, 'sku' => $variant->sku ?? $product->sku, 'qty' => $item->qty, 'unit_price' => $unit + $options['fixed'], 'subtotal' => $subtotal, 'options' => ['values' => $options['options'], 'labels' => $options['labels']], 'weight' => $product->weight_grams * $item->qty, 'tax_class_id' => $product->tax_class_id, 'free_shipping' => $product->free_shipping, 'digital' => $product->type === 'digital'];
+            $lines[] = ['flash_sale_item_id' => $flash['item']?->id, 'cart_item_id' => $item->id, 'product' => $product, 'variant' => $variant, 'product_id' => $product->id, 'variant_id' => $variant?->id, 'name' => $product->name, 'sku' => $variant->sku ?? $product->sku, 'qty' => $item->qty, 'unit_price' => $unit + $options['fixed'], 'subtotal' => $subtotal, 'options' => ['values' => $options['options'], 'labels' => $options['labels']], 'weight' => $product->weight_grams * $item->qty, 'tax_class_id' => $product->tax_class_id, 'free_shipping' => $product->free_shipping, 'digital' => $product->type === 'digital'];
         }
 
         return $lines;

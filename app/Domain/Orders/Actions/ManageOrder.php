@@ -2,6 +2,8 @@
 
 namespace App\Domain\Orders\Actions;
 
+use App\Domain\Customers\Actions\PublishNotice;
+use App\Domain\Marketing\Actions\FlashInventory;
 use App\Domain\Orders\Events\OrderChanged;
 use App\Domain\Orders\Models\Order;
 use App\Domain\Orders\Models\OrderPayment;
@@ -12,6 +14,7 @@ use App\Domain\Payments\Actions\RecordPaymentReceipt;
 use App\Domain\Payments\Actions\RecordRefundReceipt;
 use App\Domain\Shipping\Models\CourierBooking;
 use App\Jobs\SendOrderUpdate;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
@@ -25,6 +28,16 @@ final class ManageOrder
         $event = $o->events()->create(['type' => $type, 'note' => $note, 'is_public' => $public, 'admin_id' => auth('admin')->id(), 'notify' => $public]);
         OrderChanged::dispatch($o->id, $type);
         if ($public) {
+            DB::afterCommit(function () use ($o, $event) {
+                try {
+                    $owner = $o->user_id ? User::find($o->user_id) : null;
+                    if ($owner) {
+                        app(PublishNotice::class)->execute($owner, 'orders', 'marketing.notice_order', ['number' => $o->number], route('account.order', $o->number, false), 'order-event:'.$event->id, true, ['sms']);
+                    }
+                } catch (\Throwable $e) {
+                    Log::warning('Account notice pending', ['event_id' => $event->id]);
+                }
+            });
             DB::afterCommit(function () use ($event) {
                 try {
                     SendOrderUpdate::dispatch($event->id);
@@ -72,6 +85,9 @@ final class ManageOrder
                 foreach ($o->items()->orderBy('product_id')->orderBy('id')->get() as $item) {
                     app(OrderInventory::class)->restock($item, $item->stock_deducted - $item->restocked_qty);
                 }
+            }
+            if (in_array($status, ['cancelled', 'failed'], true)) {
+                app(FlashInventory::class)->release($o);
             }
             if ($status === 'completed' && $o->payment_status !== 'paid') {
                 $this->fail();

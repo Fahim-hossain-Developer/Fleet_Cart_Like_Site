@@ -4,6 +4,7 @@ namespace App\Domain\Catalog\Actions;
 
 use App\Domain\Catalog\Models\Badge;
 use App\Domain\Catalog\Models\Product;
+use App\Domain\Marketing\Actions\FlashPricing;
 
 final class ProductBadges
 {
@@ -11,6 +12,9 @@ final class ProductBadges
     public function for(Product $p): array
     {
         $badges = [];
+        if (app(FlashPricing::class)->active($p)) {
+            $badges[] = ['label' => __('marketing.flash_sale'), 'color' => '#9f1239', 'priority' => 5];
+        }
         if (! $p->available()) {
             $badges[] = ['label' => __('catalog.out_of_stock'), 'color' => '#44403c', 'priority' => 0];
         }

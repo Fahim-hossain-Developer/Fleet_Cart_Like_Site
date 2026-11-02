@@ -36,5 +36,5 @@ class Coupon extends Model
 
     protected $fillable = ['code', 'type', 'value', 'minimum', 'max_discount', 'usage_limit', 'per_customer_limit', 'used', 'starts_at', 'ends_at', 'is_active'];
 
-    protected $casts = ['value' => 'integer', 'minimum' => 'integer', 'max_discount' => 'integer', 'starts_at' => 'datetime', 'ends_at' => 'datetime', 'is_active' => 'boolean'];
+    protected $casts = ['is_public' => 'boolean', 'value' => 'integer', 'minimum' => 'integer', 'max_discount' => 'integer', 'starts_at' => 'datetime', 'ends_at' => 'datetime', 'is_active' => 'boolean'];
 }

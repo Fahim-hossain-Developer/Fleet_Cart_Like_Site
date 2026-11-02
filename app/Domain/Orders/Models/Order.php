@@ -42,7 +42,7 @@ class Order extends Model
 
     protected $guarded = ['id'];
 
-    protected $casts = ['shipping_address' => 'array', 'placed_at' => 'datetime', 'is_gift' => 'boolean', 'hide_prices' => 'boolean', 'total' => 'integer', 'display_total' => 'integer', 'risk_flags' => 'array', 'paid_amount' => 'integer', 'refunded_amount' => 'integer'];
+    protected $casts = ['automatic_discount' => 'integer', 'coupon_discount' => 'integer', 'cart_rule_snapshot' => 'array', 'shipping_address' => 'array', 'placed_at' => 'datetime', 'is_gift' => 'boolean', 'hide_prices' => 'boolean', 'total' => 'integer', 'display_total' => 'integer', 'risk_flags' => 'array', 'paid_amount' => 'integer', 'refunded_amount' => 'integer'];
 
     /**
      * @return HasMany<OrderItem,$this> */

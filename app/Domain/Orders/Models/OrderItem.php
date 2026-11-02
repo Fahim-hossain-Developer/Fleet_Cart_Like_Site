@@ -5,6 +5,7 @@ namespace App\Domain\Orders\Models;
 use Database\Factories\OrderItemFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * @property bool $tax_inclusive
@@ -32,4 +33,10 @@ class OrderItem extends Model
     protected $guarded = ['id'];
 
     protected $casts = ['tax_inclusive' => 'boolean', 'qty' => 'integer', 'stock_deducted' => 'integer', 'restocked_qty' => 'integer', 'options' => 'array', 'unit_price' => 'integer', 'total' => 'integer'];
+
+    /** @return BelongsTo<Order,$this> */
+    public function order(): BelongsTo
+    {
+        return $this->belongsTo(Order::class);
+    }
 }

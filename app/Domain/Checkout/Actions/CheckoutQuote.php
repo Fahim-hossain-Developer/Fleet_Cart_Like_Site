@@ -5,6 +5,7 @@ namespace App\Domain\Checkout\Actions;
 use App\Domain\Cart\Actions\QuoteCart;
 use App\Domain\Cart\Models\Cart;
 use App\Domain\Checkout\Models\TaxRate;
+use App\Domain\Marketing\Actions\AutomaticDiscounts;
 use App\Domain\Marketing\Actions\ValidateCoupon;
 use App\Domain\Marketing\Models\Coupon;
 use App\Domain\Shipping\Actions\ShippingResolver;
@@ -22,7 +23,11 @@ final class CheckoutQuote
         }
         $subtotal = array_sum(array_column($lines, 'subtotal'));
         $coupon = $cart->coupon_id ? Coupon::query()->when($lock, fn ($q) => $q->lockForUpdate())->find($cart->coupon_id) : null;
-        $promotion = app(ValidateCoupon::class)->execute($coupon, $subtotal, $data['phone'] ?? null);
+        $automatic = app(AutomaticDiscounts::class)->calculate($subtotal, array_sum(array_column($lines, 'qty')), $lock);
+        $promotion = app(ValidateCoupon::class)->execute($coupon, $subtotal - $automatic['discount'], $data['phone'] ?? null);
+        $couponDiscount = $promotion['discount'];
+        $promotion['discount'] += $automatic['discount'];
+        $promotion['free_shipping'] = $promotion['free_shipping'] || $automatic['free_shipping'];
         $digital = collect($lines)->every(fn ($line) => $line['digital']);
         $free = $promotion['free_shipping'] || collect($lines)->every(fn ($line) => $line['free_shipping']);
         $shipping = $digital ? ['id' => 0, 'name' => __('checkout.digital_delivery'), 'amount' => 0] : app(ShippingResolver::class)->resolve($data['country'], (int) $data['district_id'], (int) $data['shipping_method_id'], $subtotal - $promotion['discount'], array_sum(array_column($lines, 'weight')), $free);
@@ -52,6 +57,6 @@ final class CheckoutQuote
             $giftTax = (int) store_setting('checkout_gift_tax_bps', config('checkout.gift_tax_bps'));
         }
 
-        return app(PriceCalculator::class)->calculate($lines, $promotion['discount'], $shipping['amount'], $giftFee, $giftTax) + ['shipping_method' => $shipping['name'], 'coupon' => $coupon];
+        return app(PriceCalculator::class)->calculate($lines, $promotion['discount'], $shipping['amount'], $giftFee, $giftTax) + ['shipping_method' => $shipping['name'], 'coupon' => $coupon, 'automatic_discount' => $automatic['discount'], 'coupon_discount' => $couponDiscount, 'cart_rule_snapshot' => $automatic['rules']];
     }
 }

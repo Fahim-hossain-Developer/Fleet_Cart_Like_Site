@@ -2,6 +2,7 @@
 
 namespace App\Domain\Payments\Actions;
 
+use App\Domain\Marketing\Actions\FlashInventory;
 use App\Domain\Orders\Actions\ManageOrder;
 use App\Domain\Orders\Actions\OrderInventory;
 use App\Domain\Orders\Models\Order;
@@ -127,6 +128,7 @@ final class PaymentEngine
                     foreach ($o->items()->orderBy('product_id')->orderBy('id')->get() as $item) {
                         app(OrderInventory::class)->restock($item, $item->stock_deducted - $item->restocked_qty);
                     }$o->update(['status' => 'failed']);
+                    app(FlashInventory::class)->release($o);
                     app(ManageOrder::class)->event($o, 'payment_failed', __('payments.payment_failed'), true);
                 }
             } else {
