@@ -55,7 +55,7 @@ class SeoSettings extends Page implements HasForms
 
     public function form(Form $form): Form
     {
-        return $form->schema([TextInput::make('seo_defaults.title.en')->maxLength(200), TextInput::make('seo_defaults.title.bn')->maxLength(200), Textarea::make('seo_defaults.description.en')->maxLength(500), Textarea::make('seo_defaults.description.bn')->maxLength(500), Toggle::make('seo_defaults.schema')->label(__('marketing.enable_schema'))])->statePath('data');
+        return $form->schema([TextInput::make('seo_defaults.title.en')->label(__('marketing.title_en'))->maxLength(200), TextInput::make('seo_defaults.title.bn')->label(__('marketing.title_bn'))->maxLength(200), Textarea::make('seo_defaults.description.en')->label(__('marketing.description_en'))->maxLength(500), Textarea::make('seo_defaults.description.bn')->label(__('marketing.description_bn'))->maxLength(500), Toggle::make('seo_defaults.schema')->label(__('marketing.enable_schema'))])->statePath('data');
     }
 
     public function submit(): void

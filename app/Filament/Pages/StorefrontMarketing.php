@@ -57,23 +57,23 @@ class StorefrontMarketing extends Page implements HasForms
     public function form(Form $form): Form
     {
         return $form->schema([
-            Select::make('floating_controls.position')->options(['left' => __('marketing.left'), 'right' => __('marketing.right')])->required(),
-            TagsInput::make('floating_controls.paths')->helperText(__('marketing.paths_help')),
-            TagsInput::make('floating_controls.exclude'),
+            Select::make('floating_controls.position')->label(__('marketing.position'))->options(['left' => __('marketing.left'), 'right' => __('marketing.right')])->required(),
+            TagsInput::make('floating_controls.paths')->label(__('marketing.paths'))->helperText(__('marketing.paths_help')),
+            TagsInput::make('floating_controls.exclude')->label(__('marketing.exclude')),
             Toggle::make('floating_controls.whatsapp.enabled')->label('WhatsApp'),
             TextInput::make('floating_controls.whatsapp.phone')->label(__('marketing.international_phone'))->maxLength(16),
-            TextInput::make('floating_controls.whatsapp.message')->maxLength(300),
+            TextInput::make('floating_controls.whatsapp.message')->label(__('marketing.prefilled_message'))->maxLength(300),
             Toggle::make('floating_controls.messenger.enabled')->label('Messenger'),
-            TextInput::make('floating_controls.messenger.page')->maxLength(100),
+            TextInput::make('floating_controls.messenger.page')->label(__('marketing.messenger_page'))->maxLength(100),
             Toggle::make('floating_controls.call.enabled')->label(__('marketing.control_call')),
             TextInput::make('floating_controls.call.phone')->label(__('marketing.international_phone'))->maxLength(16),
             Toggle::make('floating_controls.back_to_top')->label(__('marketing.back_to_top')),
             Toggle::make('floating_controls.chat.enabled')->label('Tawk.to'),
-            TextInput::make('floating_controls.chat.property')->maxLength(24),
-            TextInput::make('floating_controls.chat.widget')->maxLength(30),
+            TextInput::make('floating_controls.chat.property')->label(__('marketing.chat_property'))->maxLength(24),
+            TextInput::make('floating_controls.chat.widget')->label(__('marketing.chat_widget'))->maxLength(30),
             Toggle::make('social_proof.enabled')->label(__('marketing.recent_purchases')),
-            TextInput::make('social_proof.frequency')->integer()->minValue(30)->maxValue(3600)->required(),
-            TagsInput::make('social_proof.exclude'),
+            TextInput::make('social_proof.frequency')->label(__('marketing.frequency_seconds'))->integer()->minValue(30)->maxValue(3600)->required(),
+            TagsInput::make('social_proof.exclude')->label(__('marketing.exclude')),
         ])->statePath('data');
     }
 

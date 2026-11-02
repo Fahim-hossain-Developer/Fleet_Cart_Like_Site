@@ -15,6 +15,7 @@ use App\Domain\Orders\Actions\EditOrderItems;
 use App\Domain\Orders\Actions\ManageOrder;
 use App\Domain\Orders\Models\DownloadEntitlement;
 use App\Domain\Orders\Models\Order;
+use App\Domain\Settings\Actions\Settings;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Validation\ValidationException;
@@ -103,6 +104,6 @@ it('shows factual flash quota and expiry and best seller badges only from eligib
     $order->update(['payment_environment' => 'live']);
     Cache::forget('catalog.real-best-sellers');
     expect(app(BestSellers::class)->ids())->toBe([$p->id]);
-    app(\App\Domain\Settings\Actions\Settings::class)->set('catalog_max_badges',10);
+    app(Settings::class)->set('catalog_max_badges', 10);
     $this->get(route('product', $p->slug))->assertOk()->assertSee('Best seller');
 });

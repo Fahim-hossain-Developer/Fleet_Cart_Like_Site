@@ -54,7 +54,7 @@ class SocialLoginSettings extends Page implements HasForms
         foreach (['google', 'facebook'] as $p) {
             $fields[] = Toggle::make($p.'.enabled')->label(ucfirst($p));
             foreach (['client_id', 'client_secret'] as $key) {
-                $fields[] = TextInput::make($p.'.'.$key)->label(ucfirst($p).' '.$key)->password()->autocomplete('off')->placeholder(app(CredentialVault::class)->masked('social.'.$p.'.'.$key))->maxLength(2048);
+                $fields[] = TextInput::make($p.'.'.$key)->label(ucfirst($p).' '.__('marketing.'.$key))->password()->autocomplete('off')->placeholder(app(CredentialVault::class)->masked('social.'.$p.'.'.$key))->maxLength(2048);
             }
         }
 
