@@ -9,3 +9,8 @@
 [x-cloak] { display: none !important; }
 :focus-visible { outline: 3px solid #047857; outline-offset: 3px; }
 html[lang="bn"] { font-family: 'Noto Sans Bengali', 'Inter', sans-serif; }
+
+@layer components {
+.btn-primary { @apply inline-flex min-h-11 items-center justify-center rounded-lg bg-brand px-5 py-3 font-semibold text-white; }
+.btn-secondary { @apply inline-flex min-h-11 items-center justify-center rounded-lg border border-stone-300 bg-white px-5 py-3 font-medium; }
+}

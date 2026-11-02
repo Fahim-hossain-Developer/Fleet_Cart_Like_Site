@@ -1,0 +1,1 @@
+<x-filament-panels::page><p>{{ __('orders.manual_notice') }}</p><form wire:submit="submit" class="space-y-5">{{ $this->form }}<x-filament::button type="submit">{{ __('orders.manual_order') }}</x-filament::button></form></x-filament-panels::page>

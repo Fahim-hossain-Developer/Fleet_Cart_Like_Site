@@ -1,7 +1,9 @@
 <?php
 
+use App\Domain\Orders\Models\OrderEvent;
 use App\Jobs\SendAccountSetup;
 use App\Jobs\SendOrderConfirmation;
+use App\Jobs\SendOrderUpdate;
 use App\Models\Admin;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
@@ -46,3 +48,13 @@ Schedule::call(function (): void {
         }
     }
 })->everyMinute()->name('account-setup-deliveries')->withoutOverlapping();
+
+Schedule::call(function (): void {
+    foreach (OrderEvent::where('notify', true)->whereNull('sent_at')->where('attempts', '<', 3)->pluck('id') as $id) {
+        try {
+            SendOrderUpdate::dispatch((int) $id);
+        } catch (Throwable $e) {
+            Log::warning('Order update retry failed', ['event_id' => $id]);
+        }
+    }
+})->everyMinute()->name('order-updates')->withoutOverlapping();

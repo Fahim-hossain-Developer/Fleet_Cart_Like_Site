@@ -1,0 +1,10 @@
+<x-filament-panels::page>
+@php($order=$this->order())
+@if($order->risk_flags)<x-filament::section><strong>{{ __('orders.risk_flags') }}</strong>@foreach($order->risk_flags as $flag)<p>{{ __('orders.risk_'.$flag) }}</p>@endforeach</x-filament::section>@endif
+<x-filament::section><p>{{ $order->phone }} · {{ $order->guest_email }}</p>@foreach($order->shipping_address as $key=>$part)<span>{{ is_array($part)?($part[app()->getLocale()]??$part['en']??''):$part }} </span>@endforeach
+@if($order->payment_proof)<p><a class="underline" href="{{ URL::temporarySignedRoute('admin.order.proof',now()->addMinutes(10),$order->id) }}">{{ __('orders.payment_proof') }}</a></p>@endif<p>{{ $order->payment_reference }}</p><p>{{ $order->note }}</p></x-filament::section>
+<x-filament::section>@include('themes.default.account.order-summary')</x-filament::section>
+<x-filament::section><h2>{{ __('orders.internal_timeline') }}</h2>@foreach($order->events->sortByDesc('id') as $e)<p>{{ $e->created_at }} · {{ $e->is_public?__('orders.public'):__('orders.internal') }} · {{ $e->note }} @if($e->admin_id) (#{{ $e->admin_id }})@endif</p>@endforeach</x-filament::section>
+<x-filament::section><h2>{{ __('orders.payments_refunds') }}</h2>@foreach($order->payments as $p)<p>{{ $p->created_at }} · {{ $p->reference }} · {{ $order->currency }} {{ number_format($p->amount/100,2) }}</p>@endforeach @foreach($order->refunds as $r)<p>{{ $r->created_at }} · {{ $r->reason }} · -{{ $order->currency }} {{ number_format($r->amount/100,2) }}</p>@endforeach</x-filament::section>
+<x-filament::section><h2>{{ __('orders.request_return') }}</h2>@foreach($order->returns as $r)<p>#{{ $r->id }} · {{ __('orders.return_'.$r->status) }} · {{ $r->reason }} · {{ $r->staff_note }}</p>@endforeach</x-filament::section>
+</x-filament-panels::page>

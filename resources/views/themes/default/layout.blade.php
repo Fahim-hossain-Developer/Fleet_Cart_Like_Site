@@ -20,7 +20,7 @@
         <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-5 py-5">
             <a href="{{ route('home') }}" class="text-xl font-bold tracking-tight md:text-2xl">{{ store_setting('name') }}<span class="text-brand">.</span></a>
             <nav aria-label="{{ __('store.navigation') }}" class="hidden gap-6 md:flex"><a href="{{ route('home') }}" aria-current="page" class="min-h-11 content-center font-medium">{{ __('store.home') }}</a><a href="{{ route('shop') }}" class="min-h-11 content-center">{{ __('catalog.shop') }}</a></nav>
-            <div class="flex flex-wrap items-center gap-2"><livewire:mini-cart />
+            <div class="flex flex-wrap items-center gap-2"><a class="min-h-11 content-center px-2" href="{{ auth('web')->check()?route('account'):route('login') }}">{{ __('orders.account') }}</a><a class="min-h-11 content-center px-2" href="{{ route('track-order') }}">{{ __('orders.tracking') }}</a><livewire:mini-cart />
 @unless(store_setting('catalog_top_bar',true))                <form action="{{ route('locale.update') }}" method="POST">@csrf
                     <label for="locale" class="sr-only">{{ __('store.language') }}</label>
                     <select id="locale" name="locale" class="min-h-11 rounded-lg border border-stone-300 px-2" onchange="this.form.requestSubmit()">

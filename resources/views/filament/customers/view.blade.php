@@ -1,0 +1,6 @@
+<x-filament-panels::page>
+@php($customer=$this->getRecord())
+<x-filament::section><h2>{{ $customer->name }}</h2><p>{{ $customer->email }} · {{ $customer->phone }}</p><p>{{ $customer->staff_notes }}</p><p>{{ implode(', ',$customer->tags??[]) }}</p></x-filament::section>
+<x-filament::section><h2>{{ __('orders.order_history') }}</h2>@foreach(\App\Domain\Orders\Models\Order::where('user_id',$customer->id)->latest('id')->limit(100)->get() as $order)<p><a href="{{ \App\Filament\Resources\OrderResource::getUrl('view',['record'=>$order]) }}">{{ $order->number }} · {{ __('orders.status_'.$order->status) }}</a></p>@endforeach</x-filament::section>
+<x-filament::section><h2>{{ __('orders.privacy_requests') }}</h2>@foreach(\Illuminate\Support\Facades\DB::table('customer_privacy_requests')->where('user_id',$customer->id)->get() as $request)<p>#{{ $request->id }} · {{ $request->created_at }} · {{ $request->status }}</p>@endforeach<p>{{ __('orders.privacy_staff_notice') }}</p></x-filament::section>
+</x-filament-panels::page>
