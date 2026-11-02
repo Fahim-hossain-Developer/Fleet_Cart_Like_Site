@@ -1,0 +1,2 @@
+# Bangladesh locations
+Factual division/district/upazila names derived from https://github.com/nuhil/bangladesh-geocode (MIT, Nuhil Mehdy; license retained here). Snapshot retrieved 2026-11-02. 8 divisions, 64 districts, 494 upazilas in this upstream snapshot. This is not a claim of the latest official administrative boundaries; admin can maintain locations as boundaries change. External URLs/coordinates were omitted. No area records are fabricated. The admin can add areas under upazilas; checkout uses those dropdown choices when present and a free-text fallback otherwise.

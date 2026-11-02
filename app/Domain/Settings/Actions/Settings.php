@@ -20,6 +20,9 @@ final class Settings
             throw ValidationException::withMessages(['key' => 'Unknown setting.']);
         }
         validator(['value' => $value], ['value' => $rules, ...($key === 'catalog_sidebar' ? ['value.*' => 'string|in:categories,attributes,latest,sale,top_rated,tags'] : [])])->validate();
+        if ($key === 'checkout_payment_methods') {
+            validator(['methods' => $value], ['methods' => 'array:cod,bank,manual_mobile', 'methods.*.enabled' => 'boolean', 'methods.*.instructions' => 'nullable|string|max:2000'])->validate();
+        }
         Setting::query()->updateOrCreate(['key' => $key], ['value' => $value, 'group' => 'general']);
         Cache::forget('store.setting.'.$key);
     }
