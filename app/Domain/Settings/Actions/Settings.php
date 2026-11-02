@@ -19,7 +19,7 @@ final class Settings
         if (! is_string($rules)) {
             throw ValidationException::withMessages(['key' => 'Unknown setting.']);
         }
-        validator(['value' => $value], ['value' => $rules])->validate();
+        validator(['value' => $value], ['value' => $rules, ...($key === 'catalog_sidebar' ? ['value.*' => 'string|in:categories,attributes,latest,sale,top_rated,tags'] : [])])->validate();
         Setting::query()->updateOrCreate(['key' => $key], ['value' => $value, 'group' => 'general']);
         Cache::forget('store.setting.'.$key);
     }
