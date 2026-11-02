@@ -17,3 +17,9 @@
 - Gift snapshots, optional account setup with encrypted retry delivery, manual currency rates/history and profile preferences.
 - Bangladesh location data with retained MIT license; delivery/tax/coupon/currency/admin controls.
 - One-page and three-step mobile checkout; independent-process MySQL concurrency coverage.
+
+## Phase 3 — Orders & Customers
+- Order lifecycle, stock policies/release, notes, received-payment/refund receipts, partial shipments, RMA, manual COD creation and factual risk flags.
+- Customer password/email-code auth, reset, verified guest-order linking, session revocation, profiles, address books, order history/reorder/cancel/tracking, paid private downloads and privacy requests/exports.
+- Staff customer management, granular finance/export permissions, durable order updates and signed gift-safe invoice/packing/label PDFs with locally shaped Bangla.
+- SQLite feature coverage plus actual MySQL lifecycle/identity/idempotency races; Pango runtime/font bundles and operator/developer documentation.

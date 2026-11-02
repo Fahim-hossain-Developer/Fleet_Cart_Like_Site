@@ -29,8 +29,18 @@ PlaceOrder locks the cart, reads live inventory in stable order, locks coupons, 
 
 Emails/setup delivery happen after commit through durable retry records. Scheduler tasks retry pending records (maximum three attempts); run schedule:run every minute or schedule:work locally. With sync queue, normal delivery is immediate and no worker is needed. If switching to database queue, start queue:work too. Email delivery is at-least-once under ambiguous transport failures; partial delivery may be repeated on retry. Local SMS log is a development driver only.
 
-Setup tokens are SHA-256 hashed for validation; encrypted delivery payloads are cleared after sending. Matching a contact never proves identity. Do not implement guest-order linking until phone/email verification in Phase 3. Confirmation/status and gift invoice policies are also later-phase work.
+Setup tokens are SHA-256 hashed for validation; encrypted delivery payloads are cleared after sending. Matching a contact never proves identity. Phase 3 email verification now provides guest-order linking. Its confirmation/status and gift invoice policies are documented in order-management.md.
 
 The bundled location dataset's source/license/counts are in database/data/README.md. Operational configuration is audited, policies are permission-scoped and defaults are non-destructive. Test factories cover new entities; common fixtures live in tests/Support so file-filtered tests can run independently.
 
 Concurrency tests launch independent PHP processes on MySQL and verify last-unit competition, one-use coupons and simultaneous duplicate submissions. SQLite deliberately skips those three tests; it does not establish row-lock behavior. Never point integration tests at non-disposable data.
+
+## Phase 3 order/customer invariants
+
+See [order-management.md](order-management.md) for the complete contract, restrictions and hosting dependencies. ManageOrder locks the parent before stock/payment/shipment/refund changes; stable cart upsert plus current reads protects manual-order replay under MySQL repeatable-read. Inventory counters make cancellation/release and refund restocking bounded. Immutable quantity/subtotal/discount and tax-rate snapshots preserve edit arithmetic. Model policies complement domain authorization.
+
+EmailCode commits failed-attempt counters, hashes challenges, atomically consumes successful challenges, and links only verified-email guest orders. First verification revokes pre-verification passwords/sessions. CustomerActive checks authentication version/block state on existing sessions. Public order events dispatch OrderChanged after commit and enqueue a durable delivery job; private notes remain staff-only.
+
+Pango/HarfBuzz shapes Bangla into private cached images; Dompdf composes the PDFs. Rebuild the PHP image when upgrading. No external font/CDN/remote PDF fetch is used. Native hosts require Pango, Fontconfig, GD and process execution. Customer endpoints always recheck ownership even with a valid URL signature.
+
+There are now nine MySQL-only race tests; SQLite explicitly skips them. Do not rebuild Vite assets concurrently with HTTP tests because the manifest is replaced during build. Keep MySQL suites sequential and isolated from development data.

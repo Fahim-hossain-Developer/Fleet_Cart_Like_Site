@@ -1,59 +1,65 @@
 # Progress
 
 ## Current scope
-**Phase 2 — Cart & Checkout complete for this phase's scope.** Phase 3 has not started. Baseline: pushed Phase 1 commit `ab9769a`; current branch `phase-2-checkout`. The user authorized the next phase after publication. Phase 1 history is retained in docs/history/phase-1-progress.md.
+**Phase 3 — Orders & Customers implemented.** Phase 4 has not started. Baseline: pushed Phase 2 `a3603ef`; branch `phase-3-orders-customers`. Phase 2 history is preserved in docs/history/phase-2-progress.md. The current user explicitly authorized this phase and the existing push authorization persists.
 
-Read PROJECT_SPEC.md, ADDON_01_NEW_FEATURES.md and docs/addon-phase-map.md before continuing. All later addon items remain in their mapped phases.
+Read PROJECT_SPEC.md, ADDON_01_NEW_FEATURES.md, DECISIONS.md, docs/addon-phase-map.md and docs/order-management.md before continuing. All later addon work retains its Section 12 mapping.
 
-## Implemented
-- Persistent guest carts using unguessable session tokens; authenticated cart lookup and guest merge; cart/item ownership policies; add/update/remove, save-for-later, mini-cart and cart page.
-- Product/variant/option validation, private file options, aggregate stock checks across option lines, current server prices and readable option snapshots. Product form/Buy Now/quick view submit to the actual cart; required custom options use the full product page. Mobile purchase controls stay accessible.
-- Fixed/percent/free-shipping coupons with date/minimum/cap/total/per-phone limits; coupon and inventory checks are re-run under transaction/row locks on placement.
-- Integer PriceCalculator, exact coupon apportionment, line tax rounding, inclusive/exclusive tax snapshots and a reconciled checkout breakdown. No client totals are trusted.
-- Licensed Bangladesh location snapshot: 8 divisions, 64 districts, 494 upazilas. Cascading selectors validate the actual hierarchy. Configured areas render as a dropdown; absent area data has an honest free-text fallback. Source/license retained in database/data.
-- District shipping zones; flat/weight/pickup/free-threshold methods; no uncovered-district free-rate fallback. Tax classes/rates and product class/weight/gift inputs.
-- One-page or three-step phone-first checkout, terms, note, COD, configured bank/manual-mobile methods with references/private proofs. Every such order starts unpaid; no payment verification is fabricated.
-- Transactional order/item/address/option/currency/gift snapshots; inventory deduction on placement; collision-checked configurable order prefix; idempotency keys; session/customer-owned receipts; read-only admin order intake.
-- Addon C1: gift toggle, fee overrides, message/recipient/hide-price snapshots and optional gift tax. Invoice/packing-slip/refund behavior is for Phase 3.
-- Addon C2: optional/auto new account without auto-login, contact deduplication, single-use one-hour password setup. Matching contacts do not attach guest orders to existing accounts. Full customer login/identity verification remains Phase 3.
-- Durable order/account setup delivery retries after commit. Setup validation token is hashed; pending delivery payload is encrypted and cleared after delivery. Mail outages do not fail a committed order response. Local mail/SMS use private logs, not claimed provider delivery.
-- Manual currencies/rate history/ppm conversion, formatting/rounding/markup, cookies/session/authenticated profile fields and order rate snapshots. Base-currency invariants are enforced; automatic rate adapters remain Phase 6. Catalog price filters explicitly show base-currency units.
-- Permission-scoped admin shipping/location/tax/currency/coupon/checkout screens, factories, audit records, schema migrations and English/Bangla strings.
-- Credential-leak HTML coverage extended to cart, checkout and protected receipts.
+## Delivered
+- Permission-scoped staff order list, search/status/payment/customer filters, detail, public/internal timeline/notes, quantity edits before payment/shipment, resend and private proof access. Document/management action menus fit the header.
+- Guarded lifecycle, independent payment/fulfillment states, UUID-idempotent manual payment/refund receipts, partial shipment bounds and carrier/tracking records. No direct shipped-status toggle fabricates a shipment.
+- Configurable snapshotted stock timing: placement, confirmation or first payment; availability rechecks, shipping-time deduction safety, per-item deduction/restock counters and exactly-once cancellation release. Ordered variants cannot be deleted out of their history.
+- Account return requests, approval/rejection, manual partial/full refunds and bounded optional restocking. Full unshipped refunds include delivery/gifts; fulfilled returns refund approved merchandise and retain delivery/gift/gift-tax fees. Refund receipts do not initiate external transfers.
+- Staff phone/COD order creation through the real checkout engine, explicit customer selection, server prices/shipping and stable-cart idempotency under MySQL repeatable-read.
+- Real risk warnings: phone blacklist, repeat cancellations, same keyed-IP burst and configurable high-value COD. Customer notes/tags/blocking, detail/history and bounded safe customer/order CSV exports.
+- Customer registration, email/phone password login, reset/logout/profile/password changes and blocked-session enforcement. Separate customer/admin guards remain in use.
+- Addon C3 customer email login/verification: hashed six-digit challenges, ten-minute expiry, five attempts, per-email/IP send limits, atomic single use, generic send responses and verified-email guest-order linking.
+- First verification revokes pre-verification passwords/sessions and permits setting a new password in the verified session. Authentication versions also invalidate stale sessions on password changes/reset; private setup tokens are revoked when email ownership is established.
+- Customer address CRUD/defaults with actual location hierarchy and saved-address checkout selection; submission stays disabled until selected address hydration finishes.
+- Owned order history/detail, current-price transactional reorder, pending cancellation and throttled number+phone tracking without exposing addresses or staff notes.
+- Signed owner/permission-protected invoice, packing-slip and shipping-label PDFs, gift hide-price behavior and bundled OFL Noto Sans Bengali static fonts. Pango/HarfBuzz shapes Bangla locally for Dompdf.
+- Paid digital-download snapshots, payment-time expiry, signed ownership checks and atomic usage limits. Refund/cancellation revokes access; download definitions can be retired without deleting entitlement snapshots.
+- Customer JSON data export and idempotent erasure request with staff visibility. Erasure is reviewed through the retention/support process, never automatic accounting-record deletion.
+- Durable public order update delivery/retries, after-commit OrderChanged events, private-note exclusions, model policies/factories, audits and English/Bangla strings.
 
 ## Validation — 2026-11-02
-- `scripts/cloud composer ci`: **passed** — Pint, Larastan level 6, **74 SQLite tests / 342 assertions**, Vite production build. **3 MySQL-only concurrency tests explicitly skipped on SQLite**.
-- Isolated MySQL 8: migrations/seeding and **77 tests / 358 assertions passed**, with independent PHP workers proving last-unit exclusion, one-use coupon atomicity and simultaneous duplicate-submission idempotency. These are real row-lock tests, not mocked concurrency.
-- Chromium: mobile variant → cart → cascading address/shipping → gift → COD → protected unpaid receipt; both one-page and three-step flows; no browser/asset errors or horizontal overflow. Screenshots inspected. Default mode restored to one-page afterwards.
-- `composer setup`: repeated successfully, preserving existing data/key/admin credentials; scheduler retry tasks executed successfully with `artisan schedule:run`.
-- `git diff --check`: clean. Local credentials, uploaded files/proofs, databases, dependencies and runtime logs remain ignored.
+- `scripts/cloud composer ci`: passed — Pint, Larastan level 6, **107 SQLite tests / 595 assertions**, Vite production build. **Nine MySQL-only race tests explicitly skipped on SQLite**.
+- Isolated MySQL 8: migrations/rollback/seeding and **115 tests / 631 assertions passed**. Independent PHP workers verify last-unit checkout, coupon limits, duplicate checkout, cancellation restock, payment balance, refund replay, shipment quantity, OTP consumption and duplicate manual-order submission.
+- The final included-tax presentation regression additionally passed on MySQL (**1 focused test / 6 assertions**); final source has 116 tests including the nine MySQL races.
+- Chromium confirmed real local email-code mail, customer password/address/account flow, saved-address checkout, gift PDFs, pending cancellation/reorder, staff states/shipment and number+phone tracking. Gift PDF was rasterized and inspected: shaped Bangla and no monetary values.
+- Final repeated Chromium checkout/cancel/reorder/staff shipment/tracking flow passed after the route limiter fix. Admin/customer layouts passed at 360/800/1440px, including action menus, forced RTL and Bangla mobile/PDF output. Gift and Bangla invoices were rendered and visually inspected.
+- Repeat `composer setup` passed and preserved the exact environment file, order count and staff credential hashes. Scheduler tasks are registered and were exercised with schedule:run.
+- `git diff --check`: clean. Development databases, setup logs, credentials, uploads/proofs, font/text caches and browser sessions remain ignored/private.
 
 ## Diagnosed and corrected
-- Database defaults were added to in-memory order state; SQLite rollback removes the phone unique index before the column.
-- Local CLI config now uses a writable container directory; Tinker can perform supported local setup checks.
-- Three-step component quoting/accessibility was verified in Chromium.
-- Notification errors are isolated from committed orders using durable outboxes.
-- Inclusive tax and optional gift fields retain their correct meaning in snapshots and totals.
-- A validation run overlapped a Vite rebuild and briefly lost its manifest; the final quality/MySQL/browser checks were rerun sequentially against stable assets.
+- Repeated browser checkout exposed shared Laravel numeric-throttle buckets across routes. Each public route now has an explicit prefix, with regressions proving quote/location traffic cannot consume submission capacity while password throttling still applies.
+- MySQL repeatable-read caused concurrent firstOrCreate recovery to miss a just-committed manual cart. A stable cart upsert and current locking reads now serialize replay; the actual worker race passes.
+- OTP failure counters commit even when verification fails; first-verification credential/session revocation prevents pre-account takeover.
+- SQLite rollback explicitly removes the IP-hash index before dropping its column. All new migration rollbacks are exercised by the disposable database suites.
+- Order details/invoices display added tax separately from the included-tax note so their totals reconcile; a regression covers inclusive pricing on SQLite and MySQL.
+- Pango needs a UTF-8 process locale and a writable private font cache. Generated Bangla images are trimmed to avoid excessive inline whitespace.
+- Address hydration and the quote run asynchronously; checkout now waits for the address to finish and flush its DOM values. Browser automation also waits for a valid form/finished quote.
+- Staff actions are grouped into menus to avoid a long row overflowing the admin page. Staff totals use explicit grid layout inside Filament's independently compiled styles.
 
 ## Run / reuse
-Directory: `/workspace/Fleet_Cart_Like_Site`.
-- Install/refresh: `scripts/cloud-bootstrap` or `scripts/cloud composer setup`.
-- Start: `scripts/cloud serve` (reuse an existing port-8000 app rather than starting duplicates).
-- Retry scheduler: `scripts/cloud php artisan schedule:work`; production cron runs schedule:run each minute. Sync queue delivers immediately; database queue additionally needs queue:work.
-- Quality: `scripts/cloud composer ci`.
-- Native/Windows/Compose instructions are in README.md. The current instance uses SQLite, file cache, sync queue and log mail/SMS. Logs can contain local setup links and must stay private.
-- Only run tests with disposable databases; integration tests migrate/rollback schema. MySQL test service used for this work is temporary and separate from development data.
+Repository: `/workspace/Fleet_Cart_Like_Site`.
+- Upgrade from Phase 2: `scripts/cloud-bootstrap` rebuilds PHP with Pango/Fontconfig and preserves existing app data/key/credentials through setup. Native Linux: install pango1.0-tools and fontconfig alongside PHP/GD; see docs/order-management.md.
+- Refresh: `scripts/cloud composer setup`; start `scripts/cloud serve` if port 8000 is not already owned by this app.
+- Scheduler: `scripts/cloud php artisan schedule:work`, or server cron schedule:run each minute. Sync queue sends immediately; database queue also needs queue:work.
+- Quality: `scripts/cloud composer ci`. Run MySQL tests only with a disposable database; integration tests migrate/rollback schema. Keep builds and browser/MySQL tests sequential against stable assets.
+- Existing instance: SQLite, file cache, sync queue, log mail/SMS; example BD delivery rates only. Private mail logs contain local OTP/setup/reset links and must not be published.
+- Customer routes: /register, /login, /email-code, /account and /track-order. Staff: /admin/orders, /admin/customers and Phone Blacklists. There is no published default customer password.
 
-## Limitations / later phases
-- Checkout currently targets Bangladesh addresses/phone normalization. International country-specific address workflows require later settings/platform work.
-- Local development delivery rates are examples (BDT 80/150), not courier quotes. Production seeding does not activate those sample rates. The bundled location snapshot may lag current boundaries; the admin can maintain it.
-- Phase 3: full order status/payment verification/fulfillment, cancellation/restocking, invoices/packing slips, returns/refunds, customer login/accounts/address books and verified guest-order linking. Do not equate checkout account creation with verified identity.
-- Inventory currently deducts on placement; optional checkout-start holds and alternate confirmation/payment-time stock policies are not enabled.
-- Online gateways/couriers/live SMS/OTP remain Phase 4. No real external payment, courier booking or SMS provider operation was tested.
-- Advanced coupon/cart rules remain Phase 5; automatic exchange rates remain Phase 6; full security scans/built-JS/future landing-page crawler coverage and production hardening remain Phase 7.
-- Gift invoice/refund rules are specified, but those future workflows are not claimed implemented. Order/account emails are at-least-once under ambiguous transport failures.
-- MariaDB, Windows, the full Compose stack, deployment/Lighthouse targets and restoration in a brand-new published task are not claimed verified.
+## Boundaries / later phases
+- Phase 4: actual gateways/original-gateway refunds, COD advance, courier bookings/webhooks, live SMS/phone OTP and role-configured admin email OTP. TOTP and broader security/settings operations remain Phase 6/7. No external payment/refund/courier/SMS operation was tested or claimed.
+- Phase 5: styled/social auth (B8), customer notification center/reviews and marketing. Phase 6: FX providers, large queued reports/exports, customer/order import tooling, arbitrary custom order status names, advanced Kanban/bulk order UX and operational cleanup. No full addon acceptance is claimed.
+- Current address/phone workflows target Bangladesh. Optional checkout-start stock holds are not enabled; confirmation/payment timing can reject stock that sold in the meantime. Coupon redemptions are not credited back automatically on cancellation.
+- Staff item edits are quantity-only, preserve original absolute discount/shipping/gift amounts, and do not requalify coupons. Legacy taxed orders without exact tax-rate snapshots are protected from recalculation; use replacement orders.
+- One accepted RMA may include multiple lines/quantities; after-shipment refund caps exclude delivery/gift charges. Manual records never transfer money. There is no wallet or store credit.
+- Bangla PDF runs are embedded raster images, not selectable/searchable text. Native/shared hosts must provide Pango/Fontconfig and permit Process execution; restricted cPanel support is not claimed verified. Private download files must be retained when retiring product definitions.
+- Erasure requests need a documented staff retention/review process; no irreversible automated deletion occurs. CSV export is bounded to 5,000 records; large queued export work remains Phase 6.
+- Risk flags are warnings snapshotted from real data, not automatic fraud decisions. At-least-once mail may repeat after ambiguous transport failures. No live mail deliverability is claimed from a log transport.
+- MariaDB, Windows, full Compose deployment, cPanel deployment, Lighthouse targets and restoration in a brand-new published environment remain unverified.
 
 ## Exact next step
-On “Continue with the next phase,” verify this baseline, then implement **Phase 3 — Orders & Customers** and its addon mapping. Do not rebuild the cart/checkout.
+After this phase is pushed and the saved environment draft is reviewed/saved/published, continue **Phase 4 — Payments & Couriers (BD)** only on the user's next authorization. Preserve order/stock/payment/identity invariants and the addon's phase map. Do not rebuild completed checkout/order/customer features.

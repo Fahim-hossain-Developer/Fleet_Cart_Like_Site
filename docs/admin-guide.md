@@ -1,5 +1,5 @@
-# Phase 0 admin guide
-Open /admin and sign in using the random credentials printed by initial local setup. The foundation dashboard is available to active staff with admin.access. Default roles: super-admin, manager, order-processor, content-editor, support. Settings/staff management permissions are reserved for super-admin. Catalog resources are documented below; orders and checkout arrive in later phases.
+# Admin guide
+Open /admin and sign in using the random credentials printed by initial local setup. The foundation dashboard is available to active staff with admin.access. Default roles: super-admin, manager, order-processor, content-editor, support. Settings/staff management permissions are reserved for super-admin. Catalog resources are documented below; catalog, checkout and order/customer tools are documented below.
 
 ## Catalog (Phase 1)
 Active staff with `catalog.manage` can open Products, Categories, Brands, Tags, Attributes, Attribute Sets, Product Tabs, Badges, Import/Export and Catalog Preferences. Other staff receive 403. All new screens support English and Bangla UI labels.
@@ -19,7 +19,7 @@ Import/Export accepts a new-product CSV with columns `sku,slug,name_en,name_bn,p
 Use the bulk Update price, stock or categories action to set either numeric field (zero is valid) and/or attach categories to selected products. Blank numeric fields preserve current values; category assignment preserves existing categories. Changes are validated and logged.
 
 ## Cart & Checkout (Phase 2)
-Checkout Preferences, tax classes/rates and currencies require `checkout.manage` (super admin by default). Shipping/location tools require `shipping.manage`; coupons require `marketing.manage` (also assigned to managers). Orders is a read-only intake list for `orders.manage`; status/payment verification, refunds and fulfillment are Phase 3.
+Checkout Preferences, tax classes/rates and currencies require `checkout.manage` (super admin by default). Shipping/location tools require `shipping.manage`; coupons require `marketing.manage` (also assigned to managers). Orders is now managed in Phase 3 under `orders.manage`; see the section below.
 
 The default local setup seeds factual Bangladesh location names and example Inside/Outside Dhaka flat rates (BDT 80/150). These are development examples, not current courier quotes. Configure actual delivery prices before sales. Production setup seeds locations/base currency but does not enable sample shipping rates. Locations are editable; the bundled snapshot contains 8 divisions, 64 districts and 494 upazilas and may lag official boundary changes. Add optional area records under upazilas to enable area dropdowns; where no area data exists, checkout uses free text.
 
@@ -29,8 +29,16 @@ Coupons support fixed, percent and free shipping, minimum spend, caps, dates, to
 
 Checkout Preferences selects one-page/three-step layout, order-number prefix, guest checkout, gift defaults/tax, account creation, and COD/bank/manual-mobile enable/instructions. Bank/mobile methods cannot place an order without configured instructions plus a transaction reference or private proof upload. Every COD/manual order starts unpaid; the application does not claim payment verification. Do not put provider credentials in public payment instructions.
 
-Gift messages, recipient details, fee and hide-price flag are order snapshots for later invoices/packing slips. Product gift fee overrides category fees; category fallback is the maximum assigned category fee. Per-line overrides are per unit and replace the order-wide default when present. Otherwise one default order fee applies. Full unfulfilled cancellation should refund the fee; fulfilled refund decisions belong to Phase 3.
+Gift messages, recipient details, fee and hide-price flag are order snapshots used by Phase 3 invoices/packing slips. Product gift fee overrides category fees; category fallback is the maximum assigned category fee. Per-line overrides are per unit and replace the order-wide default when present. Otherwise one default order fee applies. Full unfulfilled cancellation should refund the fee; fulfilled refund decisions belong to Phase 3.
 
-New optional accounts receive a one-hour single-use setup link through configured mail or the private local SMS log. Existing contact details remain guest orders; no automatic account attachment or login occurs. Full customer login/verification and address books are Phase 3. Disabling guest checkout requires that later login flow to be available.
+New optional accounts receive a one-hour single-use setup link through configured mail or the private local SMS log. Existing contact details remain guest orders; no automatic account attachment or login occurs. Customer login/verification and address books are now implemented in Phase 3. Disabling guest checkout requires that later login flow to be available.
 
 Currencies use manual ppm rates relative to BDT (1000000 = 1.0), decimals, display rounding and markup. The base rate/precision cannot be changed; all charges and authoritative totals remain BDT. Cards show display estimates; price filters are explicitly in BDT. Provider-backed rates arrive in Phase 6. Currency and language choices persist in session/cookies and authenticated profile fields.
+
+## Orders & Customers (Phase 3)
+
+Open Orders → View for status, timeline, internal/public notes, quantity edits before payment/shipment, received-payment receipts, partial shipments, return approval, manual refund receipts, resend, invoice/packing/label PDFs and private proof downloads. Create supports unpaid COD phone orders using real catalog/shipping validation. See [order-management.md](order-management.md) for exact transition, inventory, gift refund and permission rules before processing orders.
+
+Customers has search, blocked filter, a detail/history page, notes, tags, blocking and bounded CSV export. Support has read access; management/exports are owner/manager-only. Phone Blacklists stores normalized +880 numbers as review warnings. Checkout Preferences now controls deduction timing and high-value COD threshold. Customer erasure requests appear on customer details; handle them through your documented retention/support process.
+
+Bangla PDFs require the updated PHP image/Pango runtime. Do not call manual payment/refund records a gateway transaction. Real payment, courier and SMS adapters remain Phase 4.
