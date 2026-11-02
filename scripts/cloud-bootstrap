@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+set -euo pipefail
+cd "$(dirname "$0")/.."
+trust_bundle="${DEV_CA_BUNDLE:-/etc/ssl/certs/ca-certificates.crt}"
+docker build --secret "id=proxy_ca,src=$trust_bundle" -t commerce-php83 -f docker/php/Dockerfile .
+# PHPStan publishes a distribution-only package; retrieve its exact locked
+# archive from GitHub's official artifact host when API archives are unavailable.
+python3 - <<'PY'
+import hashlib, json, pathlib, subprocess
+lock = json.load(open('composer.lock'))
+package = next(p for p in lock['packages-dev'] if p['name'] == 'phpstan/phpstan')
+dist = package['dist']
+assert dist['url'].startswith('https://api.github.com/repos/phpstan/phpstan/zipball/')
+assert dist['reference'].isalnum() and len(dist['reference']) == 40
+cache = pathlib.Path('/workspace/.composer-cache/cache/files/phpstan/phpstan')
+cache.mkdir(parents=True, exist_ok=True)
+target = cache / (hashlib.sha1(dist['url'].encode()).hexdigest() + '.zip')
+if not target.exists():
+    subprocess.run(['curl', '-fsSL', 'https://codeload.github.com/phpstan/phpstan/legacy.zip/' + dist['reference'], '-o', str(target)], check=True)
+if dist.get('shasum'):
+    assert hashlib.sha1(target.read_bytes()).hexdigest() == dist['shasum']
+env = pathlib.Path('.env')
+if not env.exists():
+    text = pathlib.Path('.env.example').read_text().replace('DB_CONNECTION=mysql', 'DB_CONNECTION=sqlite')
+    text = '\n'.join(line for line in text.splitlines() if not line.startswith('DB_DATABASE=')) + '\n'
+    env.write_text(text)
+    env.chmod(0o600)
+PY
+scripts/cloud composer install --prefer-source --no-interaction
+scripts/cloud composer setup
