@@ -2,6 +2,7 @@
 
 use App\Domain\Catalog\Models\Product;
 use App\Domain\Content\Actions\SafeContent;
+use App\Domain\Content\Actions\SectionCatalog;
 use App\Domain\Content\Models\ContactMessage;
 use App\Domain\Content\Models\FaqEntry;
 use App\Domain\Content\Models\HomeSection;
@@ -97,4 +98,22 @@ it('seeds starter content once and preserves owner edits and intentional removal
     $this->seed(ContentSeeder::class);
     expect($about->refresh()->title)->toBe('Owner-authored title')->and(MenuItem::find($id))->toBeNull();
     $this->get('/page/terms')->assertNotFound();
+});
+it('renders every supported home block without exposing scripts or draft products', function () {
+    $p = Product::factory()->create();
+    $draft = Product::factory()->create(['status' => 'draft', 'name' => ['en' => 'Unpublished sentinel']]);
+    foreach (SectionCatalog::TYPES as $index => $type) {
+        $config = ['items' => [['title' => ['en' => 'Original local item'], 'body' => ['en' => 'Authored content'], 'url' => '/shop', 'price' => 25000]]];
+        if (in_array($type, ['product_carousel', 'product_tabs'])) {
+            $config = ['product_ids' => [$p->id, $draft->id]];
+        }
+        if ($type === 'countdown') {
+            $config = ['ends_at' => now()->addHour()->toIso8601String()];
+        }
+        HomeSection::factory()->create(['type' => $type, 'sort' => $index, 'title' => ['en' => 'Section '.$type], 'body' => ['en' => '<p>Allowed text</p><script>unsafeBlockMarker()</script>'], 'config' => $config]);
+    }
+    $response = $this->get('/')->assertOk()->assertDontSee('Unpublished sentinel')->assertDontSee('<script>unsafeBlockMarker()', false);
+    foreach (SectionCatalog::TYPES as $type) {
+        $response->assertSee('Section '.$type);
+    }
 });

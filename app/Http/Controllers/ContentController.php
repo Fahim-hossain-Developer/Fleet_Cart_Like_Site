@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Domain\Content\Actions\ResolveRedirect;
 use App\Domain\Content\Models\FaqEntry;
 use App\Domain\Content\Models\HomeSection;
 use App\Domain\Content\Models\Page;
@@ -20,12 +21,20 @@ final class ContentController extends Controller
 
     public function page(string $slug): mixed
     {
-        return view('themes.default.content.page', ['entry' => Page::published()->where('slug', $slug)->firstOrFail(), 'preview' => false]);
+        $entry = Page::published()->where('slug', $slug)->first();
+        if (! $entry) {
+            return app(ResolveRedirect::class)->execute('/page/'.$slug) ?? abort(404);
+        }
+
+        return view('themes.default.content.page', ['entry' => $entry, 'preview' => false]);
     }
 
     public function post(string $slug): mixed
     {
-        $p = Post::published()->where(fn ($q) => $q->whereNull('post_category_id')->orWhereHas('category', fn ($q) => $q->published()))->where('slug', $slug)->firstOrFail();
+        $p = Post::published()->where(fn ($q) => $q->whereNull('post_category_id')->orWhereHas('category', fn ($q) => $q->published()))->where('slug', $slug)->first();
+        if (! $p) {
+            return app(ResolveRedirect::class)->execute('/blog/'.$slug) ?? abort(404);
+        }
         DB::table('posts')->where('id', $p->id)->increment('views');
 
         return view('themes.default.content.page', ['entry' => $p, 'preview' => false]);

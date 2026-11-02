@@ -20,7 +20,7 @@ final class CustomerAuthController extends Controller
         $d = $r->validate(['identifier' => 'required|string|max:254', 'password' => 'required|string', 'remember' => 'sometimes|boolean']);
         $field = filter_var($d['identifier'], FILTER_VALIDATE_EMAIL) ? 'email' : 'phone';
         $id = $field === 'email' ? strtolower($d['identifier']) : app(NormalizePhone::class)->execute($d['identifier']);
-        $r->session()->forget('customer_email_verified_until');
+        $r->session()->forget(['customer_email_verified_until', 'customer_phone_verified_until']);
         if (! Auth::guard('web')->attempt([$field => $id, 'password' => $d['password'], 'is_blocked' => false], $r->boolean('remember'))) {
             throw ValidationException::withMessages(['identifier' => __('auth.failed')]);
         }

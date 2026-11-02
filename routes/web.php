@@ -1,9 +1,11 @@
 <?php
 
+use App\Domain\Content\Actions\ResolveRedirect;
 use App\Domain\Settings\Models\Currency;
 use App\Http\Controllers\AccountSetupController;
 use App\Http\Controllers\AdminCodeController;
 use App\Http\Controllers\CartController;
+use App\Http\Controllers\CartRecoveryController;
 use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\CatalogExportController;
 use App\Http\Controllers\CheckoutController;
@@ -12,6 +14,7 @@ use App\Http\Controllers\ContactController;
 use App\Http\Controllers\ContentController;
 use App\Http\Controllers\CustomerAccountController;
 use App\Http\Controllers\CustomerAuthController;
+use App\Http\Controllers\DiscoveryController;
 use App\Http\Controllers\LocationController;
 use App\Http\Controllers\NewsletterController;
 use App\Http\Controllers\NotificationController;
@@ -22,6 +25,8 @@ use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PhoneCodeController;
 use App\Http\Controllers\ProductFeedbackController;
 use App\Http\Controllers\ProductListController;
+use App\Http\Controllers\SocialLoginController;
+use App\Http\Controllers\TrackingController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -149,3 +154,27 @@ Route::match(['get', 'post'], '/newsletter/unsubscribe/{token}', [NewsletterCont
 Route::get('/offers', [OffersController::class, 'index'])->name('offers');
 Route::post('/account/saved-coupons', [OffersController::class, 'save'])->middleware(['auth:web', 'throttle:10,1,coupon-reminder-save'])->name('coupon.save');
 Route::post('/account/saved-coupons/{saved}/remove', [OffersController::class, 'remove'])->middleware(['auth:web', 'throttle:30,1,coupon-reminder-remove'])->name('coupon.remove');
+
+Route::post('/checkout/recovery-contact', [CartRecoveryController::class, 'capture'])->middleware('throttle:30,1,recovery-capture')->name('recovery.capture');
+Route::post('/checkout/recovery-code/send', [CartRecoveryController::class, 'sendCode'])->middleware('throttle:3,10,recovery-code-send')->name('recovery.code.send');
+Route::post('/checkout/recovery-code/verify', [CartRecoveryController::class, 'verifyCode'])->middleware('throttle:10,10,recovery-code-verify')->name('recovery.code.verify');
+Route::get('/cart-recovery/confirm/{token}', [CartRecoveryController::class, 'confirm'])->middleware('throttle:20,1,recovery-confirm')->name('recovery.confirm');
+Route::match(['get', 'post'], '/cart-recovery/stop/{token}', [CartRecoveryController::class, 'stop'])->middleware('throttle:30,1,recovery-stop')->name('recovery.stop');
+Route::match(['get', 'post'], '/cart-recovery/restore/{token}', [CartRecoveryController::class, 'restore'])->middleware('throttle:20,1,recovery-restore')->name('recovery.restore');
+
+Route::get('/sitemap.xml', [DiscoveryController::class, 'index'])->name('sitemap.index');
+Route::get('/sitemap-{type}-{page}.xml', [DiscoveryController::class, 'sitemap'])->where('type', 'products|categories|brands|pages|posts')->whereNumber('page')->name('sitemap.type');
+Route::get('/robots.txt', [DiscoveryController::class, 'robots'])->name('robots');
+Route::get('/feeds/{format}.xml', [DiscoveryController::class, 'feed'])->where('format', 'google|meta')->middleware('throttle:30,1,product-feed')->name('product.feed');
+
+Route::get('/admin/cart-recovery-draft/{id}', [CartRecoveryController::class, 'draft'])->middleware(['auth:admin', 'throttle:20,1,recovery-draft'])->name('recovery.draft');
+
+Route::get('/auth/{provider}/start', [SocialLoginController::class, 'start'])->where('provider', 'google|facebook')->middleware('throttle:10,1,social-start')->name('social.start');
+Route::get('/auth/{provider}/callback', [SocialLoginController::class, 'callback'])->where('provider', 'google|facebook')->middleware('throttle:20,1,social-callback')->name('social.callback');
+
+Route::post('/tracking/consent', [TrackingController::class, 'consent'])->middleware('throttle:30,1,tracking-consent')->name('tracking.consent');
+Route::post('/tracking/events', [TrackingController::class, 'events'])->middleware('throttle:60,1,tracking-events')->name('tracking.events');
+
+Route::fallback(function () {
+    return app(ResolveRedirect::class)->execute('/'.ltrim(request()->path(), '/')) ?? abort(404);
+});

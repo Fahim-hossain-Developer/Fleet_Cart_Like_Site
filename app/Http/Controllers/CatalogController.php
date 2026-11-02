@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Domain\Catalog\Actions\CatalogSearch;
 use App\Domain\Catalog\Models\Product;
+use App\Domain\Content\Actions\ResolveRedirect;
+use App\Domain\Marketing\Actions\Tracking;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -24,11 +26,12 @@ class CatalogController extends Controller
     {
         $product = Product::published()->where('slug', $slug)->first();
         if (! $product) {
-            $redirect = DB::table('redirects')->where('from', '/product/'.$slug)->first();
-            if ($redirect && Product::published()->where('slug', basename($redirect->to))->exists()) {
-                return redirect($redirect->to, 301);
-            } abort(404);
+            if ($redirect = app(ResolveRedirect::class)->execute('/product/'.$slug)) {
+                return $redirect;
+            }
+            abort(404);
         }
+        app(Tracking::class)->product($product);
         DB::table('products')->where('id', $product->id)->increment('views');
         session(['recent_products' => array_slice(array_values(array_unique(array_merge([$product->id], (array) session('recent_products', [])))), 0, 8)]);
 

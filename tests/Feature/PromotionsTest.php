@@ -5,6 +5,7 @@ use App\Domain\Catalog\Models\Product;
 use App\Domain\Catalog\Models\ProductDownload;
 use App\Domain\Checkout\Actions\CheckoutQuote;
 use App\Domain\Marketing\Actions\AutomaticDiscounts;
+use App\Domain\Marketing\Actions\BestSellers;
 use App\Domain\Marketing\Models\CartRule;
 use App\Domain\Marketing\Models\Coupon;
 use App\Domain\Marketing\Models\FlashAllocation;
@@ -14,6 +15,7 @@ use App\Domain\Orders\Actions\EditOrderItems;
 use App\Domain\Orders\Actions\ManageOrder;
 use App\Domain\Orders\Models\DownloadEntitlement;
 use App\Domain\Orders\Models\Order;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Validation\ValidationException;
 
@@ -89,4 +91,18 @@ it('handles a genuinely free order without inventing a payment receipt or leavin
     $this->post('/checkout', $f['data'])->assertRedirect();
     $o = Order::firstOrFail();
     expect($o->total)->toBe(0)->and($o->payment_status)->toBe('paid')->and($o->paid_amount)->toBe(0)->and($o->payments()->count())->toBe(0)->and(DownloadEntitlement::first()->enabled_at)->not->toBeNull();
+});
+it('shows factual flash quota and expiry and best seller badges only from eligible sales', function () {
+    $p = Product::factory()->create(['price' => 10000]);
+    $flash = FlashSaleItem::factory()->create(['product_id' => $p->id, 'price' => 5000, 'quota' => 4]);
+    $this->get(route('product', $p->slug))->assertOk()->assertSee('4 promotional units remaining.')->assertSee('flash-status-'.$flash->id);
+    $order = Order::factory()->create(['status' => 'delivered', 'payment_status' => 'paid', 'payment_environment' => 'sandbox', 'total' => 10000, 'paid_amount' => 10000]);
+    $order->items()->create(['product_id' => $p->id, 'name' => $p->name, 'sku' => $p->sku, 'options' => [], 'qty' => 1, 'unit_price' => 10000, 'subtotal' => 10000, 'discount' => 0, 'tax' => 0, 'total' => 10000]);
+    Cache::forget('catalog.real-best-sellers');
+    expect(app(BestSellers::class)->ids())->toBe([]);
+    $order->update(['payment_environment' => 'live']);
+    Cache::forget('catalog.real-best-sellers');
+    expect(app(BestSellers::class)->ids())->toBe([$p->id]);
+    app(\App\Domain\Settings\Actions\Settings::class)->set('catalog_max_badges',10);
+    $this->get(route('product', $p->slug))->assertOk()->assertSee('Best seller');
 });

@@ -6,6 +6,7 @@ use Database\Factories\NoticeDeliveryFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/** @property int|null $sms_delivery_id */
 class NoticeDelivery extends Model
 {
     /** @use HasFactory<NoticeDeliveryFactory> */

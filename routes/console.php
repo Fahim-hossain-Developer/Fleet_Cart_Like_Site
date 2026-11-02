@@ -3,20 +3,29 @@
 use App\Domain\Customers\Models\AdminLoginChallenge;
 use App\Domain\Customers\Models\NoticeDelivery;
 use App\Domain\Customers\Models\SmsDelivery;
+use App\Domain\Marketing\Actions\SyncMarketingSms;
+use App\Domain\Marketing\Models\CartRecoveryMessage;
 use App\Domain\Marketing\Models\NewsletterCampaign;
 use App\Domain\Marketing\Models\NewsletterMessage;
 use App\Domain\Marketing\Models\Question;
 use App\Domain\Marketing\Models\Review;
+use App\Domain\Marketing\Models\TrackingConsent;
+use App\Domain\Marketing\Models\TrackingEvent;
+use App\Domain\Orders\Models\Order;
 use App\Domain\Orders\Models\OrderEvent;
 use App\Domain\Settings\Models\IntegrationEvent;
 use App\Jobs\CheckProductWatches;
+use App\Jobs\DeliverCartRecovery;
 use App\Jobs\DeliverNewsletter;
 use App\Jobs\DeliverNotice;
+use App\Jobs\DeliverTrackingEvent;
+use App\Jobs\PrepareCartRecovery;
 use App\Jobs\PrepareCouponReminders;
 use App\Jobs\PrepareNewsletterCampaign;
 use App\Jobs\PrepareReviewRequests;
 use App\Jobs\ProcessPaymentEvent;
 use App\Jobs\PublishFeedbackNotice;
+use App\Jobs\RecordOrderPurchase;
 use App\Jobs\SendAccountSetup;
 use App\Jobs\SendAdminCode;
 use App\Jobs\SendOrderConfirmation;
@@ -129,3 +138,32 @@ Schedule::call(function (): void {
 })->everyMinute()->name('newsletter-deliveries')->withoutOverlapping();
 
 Schedule::job(new PrepareCouponReminders)->hourly()->name('coupon-reminders')->withoutOverlapping();
+
+Schedule::job(new PrepareCartRecovery)->everyFiveMinutes()->name('cart-recovery-prepare')->withoutOverlapping();
+Schedule::call(function (): void {
+    app(SyncMarketingSms::class)->execute();
+    foreach (CartRecoveryMessage::where('status', 'pending')->where('expires_at', '>', now())->where('attempts', '<', 3)->limit(100)->pluck('id') as $id) {
+        DeliverCartRecovery::dispatch((int) $id);
+    }
+    CartRecoveryMessage::where('expires_at', '<=', now())->whereNotIn('status', ['sent', 'skipped', 'expired'])->update(['payload' => null, 'status' => 'expired']);
+})->everyMinute()->name('cart-recovery-deliveries')->withoutOverlapping();
+
+Schedule::call(function (): void {
+    foreach (TrackingEvent::whereIn('status', ['pending', 'retry'])->where('attempts', '<', 3)->limit(100)->pluck('id') as $id) {
+        DeliverTrackingEvent::dispatch((int) $id);
+    }
+    TrackingConsent::where('expires_at', '<=', now())->whereNotNull('private_data')->update(['private_data' => null]);
+    TrackingEvent::where('occurred_at', '<', now()->subDays(7))->whereIn('status', ['pending', 'retry', 'sending'])->update(['status' => 'expired']);
+})->everyMinute()->name('tracking-deliveries')->withoutOverlapping();
+
+Schedule::call(function (): void {
+    if (! store_setting('tracking_enabled', false)) {
+        return;
+    }
+    foreach (Order::whereNotNull('tracking_consent_id')->where('payment_environment', 'live')->where('payment_status', 'paid')->where('total', '>', 0)->whereColumn('paid_amount', '>=', 'total')->where('refunded_amount', 0)->whereNotIn('status', ['cancelled', 'failed', 'refunded', 'returned'])->where('placed_at', '>', now()->subDays(7))->whereNotExists(function ($q) {
+        $q->selectRaw('1')->from('tracking_events')->where('name', 'Purchase')->whereRaw(DB::getDriverName() === 'sqlite' ? "tracking_events.source_key = 'purchase:' || orders.id" : "tracking_events.source_key = CONCAT('purchase:',orders.id)");
+    })->limit(100)->pluck('id') as $id) {
+        RecordOrderPurchase::dispatch((int) $id);
+    }
+    TrackingEvent::where('status', 'sending')->where('updated_at', '<', now()->subMinutes(5))->where('attempts', '<', 3)->update(['status' => 'retry', 'failure_code' => 'claim_interrupted']);
+})->everyFiveMinutes()->name('purchase-tracking-reconcile')->withoutOverlapping();

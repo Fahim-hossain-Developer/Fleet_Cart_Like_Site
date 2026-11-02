@@ -14,17 +14,21 @@ use App\Domain\Checkout\Models\TaxClass;
 use App\Domain\Checkout\Models\TaxRate;
 use App\Domain\Checkout\Policies\CommercePolicy;
 use App\Domain\Content\Models\ContactMessage;
+use App\Domain\Content\Models\Redirect;
 use App\Domain\Content\Policies\ContactMessagePolicy;
 use App\Domain\Content\Policies\ContentPolicy;
+use App\Domain\Content\Policies\RedirectPolicy;
 use App\Domain\Customers\Models\Address;
 use App\Domain\Customers\Models\BlacklistedPhone;
 use App\Domain\Customers\Models\ShoppingList;
 use App\Domain\Customers\Models\ShoppingListItem;
+use App\Domain\Customers\Models\SocialIdentity;
 use App\Domain\Customers\Policies\AddressPolicy;
 use App\Domain\Customers\Policies\BlacklistPolicy;
 use App\Domain\Customers\Policies\CustomerPolicy;
 use App\Domain\Customers\Policies\ShoppingListItemPolicy;
 use App\Domain\Customers\Policies\ShoppingListPolicy;
+use App\Domain\Customers\Policies\SocialIdentityPolicy;
 use App\Domain\Marketing\Models\Coupon;
 use App\Domain\Marketing\Policies\MarketingPolicy;
 use App\Domain\Orders\Models\Order;
@@ -37,8 +41,10 @@ use App\Domain\Shipping\Models\Location;
 use App\Domain\Shipping\Models\ShippingMethod;
 use App\Domain\Shipping\Models\ShippingZone;
 use App\Jobs\CheckProductWatches;
+use App\Jobs\RecordOrderPurchase;
 use App\Models\User;
 use Filament\Forms\Components\Field;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Lang;
@@ -60,6 +66,17 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Order::saved(function (Order $order): void {
+            if (store_setting('tracking_enabled', false) && $order->payment_status === 'paid' && $order->payment_environment === 'live') {
+                DB::afterCommit(function () use ($order): void {
+                    try {
+                        RecordOrderPurchase::dispatch($order->id);
+                    } catch (\Throwable $e) {
+                        Log::warning('Purchase tracking pending', ['order_id' => $order->id]);
+                    }
+                });
+            }
+        });
         foreach (glob(app_path('Domain/Content/Models/*.php')) as $path) {
             Gate::policy('App\\Domain\\Content\\Models\\'.basename($path, '.php'), ContentPolicy::class);
         }
@@ -67,6 +84,7 @@ class AppServiceProvider extends ServiceProvider
             Gate::policy('App\\Domain\\Marketing\\Models\\'.$model, MarketingPolicy::class);
         }
         Gate::policy(ContactMessage::class, ContactMessagePolicy::class);
+        Gate::policy(SocialIdentity::class, SocialIdentityPolicy::class);
         Gate::policy(ShoppingList::class, ShoppingListPolicy::class);
         Gate::policy(ShoppingListItem::class, ShoppingListItemPolicy::class);
         foreach (['StoreNotification', 'NoticeDelivery', 'NotificationPreference', 'ProductWatch'] as $model) {
@@ -85,9 +103,10 @@ class AppServiceProvider extends ServiceProvider
         foreach (['Review', 'Question', 'ReviewVote', 'ReviewRequest', 'SavedCoupon'] as $model) {
             Gate::policy('App\\Domain\\Marketing\\Models\\'.$model, 'App\\Domain\\Marketing\\Policies\\'.$model.'Policy');
         }
-        foreach (['NewsletterSubscriber', 'NewsletterCampaign', 'NewsletterMessage'] as $model) {
+        foreach (['NewsletterSubscriber', 'NewsletterCampaign', 'NewsletterMessage', 'CartRecoveryContact', 'CartRecoveryMessage', 'CartRecoveryRestoration', 'TrackingConsent', 'TrackingEvent'] as $model) {
             Gate::policy('App\\Domain\\Marketing\\Models\\'.$model, 'App\\Domain\\Marketing\\Policies\\'.$model.'Policy');
         }
+        Gate::policy(Redirect::class, RedirectPolicy::class);
         Gate::policy(Setting::class, SettingPolicy::class);
         Gate::policy(Cart::class, CartPolicy::class);
         Gate::policy(CartItem::class, CartItemPolicy::class);

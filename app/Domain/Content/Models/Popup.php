@@ -12,6 +12,8 @@ class Popup extends ContentModel
 
     protected $table = 'popups';
 
+    protected $attributes = ['status' => 'draft', 'is_active' => true, 'sort' => 0, 'trigger' => 'delay', 'delay_seconds' => 15, 'frequency_hours' => 168];
+
     protected static function newFactory(): PopupFactory
     {
         return PopupFactory::new();

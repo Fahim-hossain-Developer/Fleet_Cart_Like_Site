@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Domain\Cart\Actions\CartManager;
 use App\Domain\Cart\Actions\CartSession;
 use App\Domain\Cart\Actions\QuoteCart;
+use App\Domain\Marketing\Actions\AutomaticDiscounts;
 use App\Domain\Marketing\Actions\ValidateCoupon;
 use App\Domain\Marketing\Models\Coupon;
 use App\Domain\Shipping\Actions\ShippingResolver;
@@ -43,7 +44,9 @@ class CartPage extends Component
             throw ValidationException::withMessages(['coupon' => __('checkout.invalid_coupon')]);
         }
         $lines = app(QuoteCart::class)->execute($cart);
-        app(ValidateCoupon::class)->execute($coupon, array_sum(array_column($lines, 'subtotal')));
+        $subtotal = array_sum(array_column($lines, 'subtotal'));
+        $automatic = app(AutomaticDiscounts::class)->calculate($subtotal, array_sum(array_column($lines, 'qty')));
+        app(ValidateCoupon::class)->execute($coupon, $subtotal - $automatic['discount']);
         $cart->update(['coupon_id' => $coupon->id]);
     }
 
@@ -61,7 +64,11 @@ class CartPage extends Component
         $promotion = ['discount' => 0, 'free_shipping' => false];
         try {
             $lines = app(QuoteCart::class)->execute($cart);
-            $promotion = app(ValidateCoupon::class)->execute($cart->coupon_id ? Coupon::find($cart->coupon_id) : null, array_sum(array_column($lines, 'subtotal')));
+            $subtotal = array_sum(array_column($lines, 'subtotal'));
+            $automatic = app(AutomaticDiscounts::class)->calculate($subtotal, array_sum(array_column($lines, 'qty')));
+            $promotion = app(ValidateCoupon::class)->execute($cart->coupon_id ? Coupon::find($cart->coupon_id) : null, $subtotal - $automatic['discount']);
+            $promotion['discount'] += $automatic['discount'];
+            $promotion['free_shipping'] = $promotion['free_shipping'] || $automatic['free_shipping'];
         } catch (ValidationException $e) {
             $issue = collect($e->errors())->flatten()->first();
         }

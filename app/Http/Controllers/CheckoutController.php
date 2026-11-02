@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Domain\Cart\Actions\CartSession;
 use App\Domain\Checkout\Actions\CheckoutQuote;
 use App\Domain\Customers\Models\Address;
+use App\Domain\Marketing\Actions\Tracking;
 use App\Domain\Orders\Actions\PlaceOrder;
 use App\Domain\Orders\Models\Order;
 use App\Domain\Payments\Actions\PaymentMethods;
@@ -31,6 +32,8 @@ class CheckoutController extends Controller
             $key = (string) Str::uuid();
             session(['checkout_key' => $key]);
         }
+
+        app(Tracking::class)->checkout();
 
         return view('themes.default.checkout', ['addresses' => auth('web')->check() ? Address::where('user_id', auth('web')->id())->orderByDesc('is_default')->get() : collect(), 'key' => $key, 'divisions' => Location::where('type', 'division')->get(), 'paymentMethods' => app(PaymentMethods::class)->current()]);
     }

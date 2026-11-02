@@ -6,6 +6,8 @@ use Database\Factories\BrandFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/** @property bool $is_active
+ * @property string $name */
 class Brand extends CatalogModel
 {
     /** @use HasFactory<BrandFactory> */

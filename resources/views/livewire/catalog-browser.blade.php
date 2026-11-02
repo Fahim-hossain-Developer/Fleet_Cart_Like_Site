@@ -12,6 +12,7 @@
 @if(in_array('sale',store_setting('catalog_sidebar',config('catalog.sidebar'))))<h2 class="font-semibold">{{ __('catalog.sale') }}</h2>@foreach($saleItems as $item)@if($item->currentPrice()<$item->price)<a class="block min-h-11 text-sm" href="{{ route('product',$item->slug) }}">{{ $item->name }}</a>@endif @endforeach @endif
 @if(in_array('top_rated',store_setting('catalog_sidebar',[])) && $topRated->isNotEmpty())<h2 class="font-semibold">{{ __('catalog.top_rated') }}</h2>@foreach($topRated as $item)<a class="block min-h-11 text-sm" href="{{ route('product',$item->slug) }}">{{ $item->name }}</a>@endforeach @endif
 @if(in_array('tags',store_setting('catalog_sidebar',[])))<h2 class="font-semibold">{{ __('catalog.tags') }}</h2><div class="flex flex-wrap gap-2">@foreach($topTags as $tag)<a href="{{ route('search',['tag'=>$tag->id]) }}" class="min-h-11 rounded-full border px-3 py-2 text-sm">{{ $tag->name }}</a>@endforeach</div>@endif
+@foreach(\App\Domain\Content\Models\Banner::published()->where('position','shop')->orderBy('sort')->limit(4)->get() as $banner)@include('themes.default.content.banner',['banner'=>$banner])@endforeach
 </aside>
 <div class="min-w-0">
 <div class="mb-5 flex flex-wrap gap-3 rounded-xl border bg-white p-3">

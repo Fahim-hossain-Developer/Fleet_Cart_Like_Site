@@ -20,7 +20,7 @@
 @elseif($type==='banner_row')
 <div class="grid gap-5 md:grid-cols-2">@foreach($data['banners'] as $banner)@include('themes.default.content.banner',['banner'=>$banner])@endforeach</div>
 @elseif(in_array($type,['brand_logos','shop_by_brand']))
-<div class="flex flex-wrap gap-4">@foreach($data['brands'] as $brand)<a class="btn-secondary" href="{{ route('brand',$brand->slug) }}">{{ $brand->name }}</a>@endforeach</div>
+<div class="flex flex-wrap gap-4">@foreach($data['brands'] as $brand)<a class="btn-secondary" href="{{ route('brand',$brand->slug) }}">@if($brand->image)<img src="{{ asset('storage/'.$brand->image) }}" alt="" width="120" height="60" loading="lazy" class="h-12 w-24 object-contain">@endif<span>{{ $brand->name }}</span></a>@endforeach</div>
 @elseif($type==='blog_posts')
 <div class="grid gap-6 md:grid-cols-3">@foreach($data['posts'] as $post)<article class="rounded-2xl border bg-white p-6"><h3 class="text-xl font-semibold"><a href="{{ route('blog.post',$post->slug) }}">{{ $post->title }}</a></h3><p class="mt-3">{{ strip_tags($post->excerpt??'') }}</p><a href="{{ route('blog.post',$post->slug) }}" class="mt-4 inline-flex min-h-11 items-center underline">{{ __('content.read_more') }}</a></article>@endforeach</div>
 @elseif($type==='rich_text')

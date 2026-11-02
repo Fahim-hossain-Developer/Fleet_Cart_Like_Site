@@ -5,6 +5,7 @@ namespace App\Domain\Content\Actions;
 use App\Domain\Content\Models\ContentModel;
 use App\Domain\Content\Models\HomeSection;
 use App\Domain\Content\Models\MenuItem;
+use App\Domain\Content\Models\Popup;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\ValidationException;
 
@@ -38,6 +39,9 @@ final class ValidateContent
             }
         }
         if ($m instanceof MenuItem) {
+            if ($m->exists && $m->isDirty('menu_id') && MenuItem::where('parent_id', $m->id)->exists()) {
+                $this->fail('menu_id');
+            }
             $seen = [$m->id];
             $parent = $m->parent_id;
             $depth = 1;
@@ -54,6 +58,9 @@ final class ValidateContent
                     $this->fail('parent_id');
                 }$children = MenuItem::whereIn('parent_id', $children)->pluck('id')->all();
             }
+        }
+        if ($m instanceof Popup) {
+            validator($m->only(['trigger', 'delay_seconds', 'frequency_hours', 'paths']), ['trigger' => 'required|in:delay,exit', 'delay_seconds' => 'required|integer|min:1|max:300', 'frequency_hours' => 'required|integer|min:1|max:8760', 'paths' => 'nullable|array|max:30', 'paths.*' => 'string|max:160|regex:~^/[a-zA-Z0-9/_*-]*$~D'])->validate();
         }
         if ($m instanceof HomeSection) {
             $config = $m->config ?? [];

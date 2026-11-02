@@ -44,17 +44,20 @@ final class CartManager
             $variant = $item->variant_id ? ProductVariant::where('product_id', $product->id)->where('is_active', true)->findOrFail($item->variant_id) : null;
             $this->assertStock($product, $variant, $quantity);
             $item->update(['qty' => $quantity]);
+            $cart->touch();
         });
     }
 
     public function remove(Cart $cart, int $id): void
     {
         $cart->items()->findOrFail($id)->delete();
+        $cart->touch();
     }
 
     public function save(Cart $cart, int $id, bool $saved): void
     {
         $cart->items()->findOrFail($id)->update(['saved' => $saved]);
+        $cart->touch();
     }
 
     public function assertStock(Product $product, ?ProductVariant $variant, int $quantity): void

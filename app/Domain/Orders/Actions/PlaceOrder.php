@@ -9,6 +9,8 @@ use App\Domain\Customers\Actions\CreateCheckoutAccount;
 use App\Domain\Customers\Actions\NormalizePhone;
 use App\Domain\Customers\Actions\PublishNotice;
 use App\Domain\Marketing\Actions\FlashInventory;
+use App\Domain\Marketing\Actions\RecoveryConversion;
+use App\Domain\Marketing\Actions\Tracking;
 use App\Domain\Marketing\Actions\ValidateCoupon;
 use App\Domain\Orders\Models\DownloadEntitlement;
 use App\Domain\Orders\Models\Order;
@@ -75,6 +77,7 @@ final class PlaceOrder
             $user = $manual ? (! empty($data['user_id']) ? User::where('is_blocked', false)->findOrFail($data['user_id']) : null) : app(CreateCheckoutAccount::class)->execute($data);
             $display = app(CurrencyDisplay::class)->current();
             $order = Order::create(['payment_status' => $quote['total'] === 0 ? 'paid' : 'unpaid', 'stock_policy' => store_setting('orders_stock_policy', 'placement'), 'ip_hash' => request()->ip() ? hash_hmac('sha256', request()->ip(), config('app.key')) : null, 'number' => app(OrderNumber::class)->generate(), 'idempotency_key' => $data['idempotency_key'], 'cart_id' => $cart->id, 'user_id' => $user?->id, 'phone' => $data['phone'], 'guest_email' => $data['email'] ?? null, 'currency' => config('checkout.base_currency'), 'display_currency' => $display->code ?? config('checkout.base_currency'), 'display_rate_ppm' => $display ? app(CurrencyDisplay::class)->rate($display) : 1000000, 'display_total' => $display ? app(CurrencyDisplay::class)->convert($quote['total'], $display) : $quote['total'], 'advance_required' => app(AdvanceRequired::class)->calculate($quote['total'], $quote['shipping'], $data['payment_method']), 'automatic_discount' => $quote['automatic_discount'], 'coupon_discount' => $quote['coupon_discount'], 'cart_rule_snapshot' => $quote['cart_rule_snapshot'], 'original_discount' => $quote['discount'], 'subtotal' => $quote['subtotal'], 'discount' => $quote['discount'], 'shipping' => $quote['shipping'], 'tax' => $quote['tax'], 'tax_included' => $quote['tax_included'], 'gift_fee' => $quote['gift_fee'], 'total' => $quote['total'], 'is_gift' => $data['is_gift'] ?? false, 'gift_message' => ! empty($data['is_gift']) ? ($data['gift_message'] ?? null) : null, 'hide_prices' => ! empty($data['is_gift']) && ! empty($data['hide_prices']), 'recipient_name' => ! empty($data['is_gift']) ? ($data['recipient_name'] ?? null) : null, 'recipient_phone' => ! empty($data['is_gift']) && ! empty($data['recipient_phone']) ? app(NormalizePhone::class)->execute($data['recipient_phone']) : null, 'shipping_address' => ['name' => $data['name'], 'country' => $data['country'], 'division' => $division->name, 'district' => $district->name, 'upazila' => $upazila->name, 'area' => $area->name ?? ($data['area'] ?? null), 'line1' => $data['address']], 'note' => $data['note'] ?? null, 'payment_method' => $data['payment_method'], 'payment_reference' => $data['payment_reference'] ?? null, 'payment_proof' => $data['payment_proof'] ?? null, 'shipping_method' => $quote['shipping_method'], 'coupon_id' => $quote['coupon']?->id, 'placed_at' => now()]);
+            app(Tracking::class)->attach($order);
             foreach ($quote['lines'] as $line) {
                 $item = $order->items()->create(array_intersect_key($line, array_flip(['product_id', 'variant_id', 'name', 'sku', 'qty', 'unit_price', 'subtotal', 'discount', 'tax', 'tax_inclusive', 'tax_bps', 'total', 'options'])));
                 if (! empty($line['flash_sale_item_id'])) {
@@ -100,6 +103,7 @@ final class PlaceOrder
             }
             DB::table('order_events')->insert(['order_id' => $order->id, 'type' => 'placed', 'note' => __('checkout.order_placed'), 'is_public' => true, 'created_at' => now(), 'updated_at' => now()]);
             DB::table('order_notifications')->insert(['order_id' => $order->id, 'created_at' => now(), 'updated_at' => now()]);
+            app(RecoveryConversion::class)->mark($cart);
             $cart->items()->where('saved', false)->delete();
             $cart->update(['coupon_id' => null]);
             DB::afterCommit(function () use ($order) {

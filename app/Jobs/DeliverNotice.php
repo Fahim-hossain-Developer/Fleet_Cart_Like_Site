@@ -6,6 +6,7 @@ use App\Domain\Customers\Actions\NoticePreferences;
 use App\Domain\Customers\Actions\Sms;
 use App\Domain\Customers\Models\NoticeDelivery;
 use App\Domain\Customers\Models\StoreNotification;
+use App\Domain\Marketing\Actions\SyncMarketingSms;
 use App\Mail\StoreNoticeMail;
 use App\Models\User;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -48,7 +49,11 @@ final class DeliverNotice implements ShouldQueue
             if ($d->channel === 'email') {
                 Mail::to($u->email)->send(new StoreNoticeMail($body, __('marketing.notification_subject', [], $u->locale ?: config('app.locale'))));
             } else {
-                app(Sms::class)->queue($u->phone, $body);
+                $sms = app(Sms::class)->queue($u->phone, $body);
+                $d->update(['status' => 'queued_sms', 'sms_delivery_id' => $sms->id, 'failure_code' => null]);
+                app(SyncMarketingSms::class)->execute();
+
+                return;
             }
             $d->update(['status' => 'sent', 'sent_at' => now(), 'failure_code' => null]);
         } catch (\Throwable $e) {

@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Domain\Catalog\Models\Product;
 use App\Domain\Catalog\Models\ProductTab;
+use App\Domain\Catalog\Models\ProductVariant;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
@@ -20,6 +21,10 @@ class ProductDetails extends Component
     public function mount(int $productId): void
     {
         $this->productId = $productId;
+        $id = request()->query('variant');
+        if (is_string($id) && ctype_digit($id) && ProductVariant::where('product_id', $productId)->where('is_active', true)->whereKey((int) $id)->exists()) {
+            $this->variant = $id;
+        }
     }
 
     public function render(): View
@@ -40,6 +45,6 @@ class ProductDetails extends Component
         })->with(['media', 'categories', 'variants'])->limit(4)->get();
         $recent = Product::published()->whereIn('id', array_slice((array) session('recent_products', []), 0, 8))->where('id', '!=', $product->id)->with(['media', 'categories', 'variants'])->get();
 
-        return view('livewire.product-details', ['product' => $product, 'tabs' => $tabs, 'related' => $related, 'recent' => $recent, 'selected' => $product->variants->firstWhere('id', (int) $this->variant)]);
+        return view('livewire.product-details', ['product' => $product, 'tabs' => $tabs, 'related' => $related, 'recent' => $recent, 'selected' => $product->variants->where('is_active', true)->firstWhere('id', (int) $this->variant)]);
     }
 }

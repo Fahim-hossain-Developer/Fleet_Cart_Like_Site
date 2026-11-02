@@ -1,0 +1,1 @@
+<x-filament-panels::page><p>{{ __('marketing.tracking_admin_help') }}</p><form wire:submit="submit" class="space-y-6">{{ $this->form }}<x-filament::button type="submit">{{ __('orders.save') }}</x-filament::button></form></x-filament-panels::page>

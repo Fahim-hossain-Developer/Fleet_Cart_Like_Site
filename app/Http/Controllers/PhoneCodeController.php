@@ -28,6 +28,7 @@ final class PhoneCodeController extends Controller
         auth('web')->login($u);
         $r->session()->regenerate();
         $r->session()->put('customer_auth_version', $u->auth_version);
+        $r->session()->put('customer_phone_verified_until', now()->addMinutes(10)->timestamp);
 
         app(ProductLists::class)->mergeGuest($u);
 

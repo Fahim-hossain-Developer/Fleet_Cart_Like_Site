@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CartRecoveryController;
 use App\Http\Controllers\GatewayReturnController;
 use App\Http\Controllers\GatewayWebhookController;
 use App\Http\Controllers\NewsletterController;
@@ -9,3 +10,5 @@ Route::match(['get', 'post'], '/r/{attempt:uuid}/{expires}/{token}', GatewayRetu
 Route::post('/payments/{driver}/{mode}/webhook', GatewayWebhookController::class)->where('driver', 'stripe|paypal|sslcommerz|bkash|aamarpay|nagad|fake')->where('mode', 'sandbox|live')->middleware('throttle:1200,1,integration-payment-webhook')->name('integrations.payment.webhook');
 
 Route::post('/newsletter/unsubscribe/{token}', [NewsletterController::class, 'oneClick'])->middleware('throttle:60,1,newsletter-one-click')->name('newsletter.one-click');
+
+Route::post('/cart-recovery/stop/{token}', [CartRecoveryController::class, 'oneClick'])->middleware('throttle:30,1,recovery-one-click')->name('recovery.one-click');

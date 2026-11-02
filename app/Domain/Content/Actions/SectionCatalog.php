@@ -8,6 +8,7 @@ use App\Domain\Catalog\Models\Product;
 use App\Domain\Content\Models\Banner;
 use App\Domain\Content\Models\Post;
 use App\Domain\Content\Models\Slider;
+use App\Domain\Marketing\Actions\BestSellers;
 use App\Domain\Marketing\Models\FlashSaleItem;
 use Illuminate\Validation\ValidationException;
 
@@ -58,9 +59,11 @@ final class SectionCatalog
                 $q->whereNotNull('special_price')->where(fn ($q) => $q->whereNull('special_from')->orWhere('special_from', '<=', now()))->where(fn ($q) => $q->whereNull('special_to')->orWhere('special_to', '>', now()));
             }
             if (($config['source'] ?? 'new') === 'best_seller') {
-                $q->whereIn('id', function ($q) {
-                    $q->select('order_items.product_id')->from('order_items')->join('orders', 'orders.id', '=', 'order_items.order_id')->where('orders.placed_at', '>=', now()->subDays(30))->whereIn('orders.status', ['delivered', 'completed'])->where('orders.payment_status', 'paid')->where(fn ($q) => $q->whereNull('orders.payment_environment')->orWhere('orders.payment_environment', 'live'));
-                });
+                $ids = app(BestSellers::class)->ids();
+                $q->whereIn('products.id', $ids);
+                if ($ids) {
+                    $q->orderByRaw('CASE products.id '.implode(' ', array_map(fn ($id, $index) => 'WHEN '.(int) $id.' THEN '.(int) $index, $ids, array_keys($ids))).' ELSE 100 END');
+                }
             }
             if (($config['source'] ?? 'new') === 'flash') {
                 $q->whereIn('id', FlashSaleItem::where('is_active', true)->whereColumn('sold', '<', 'quota')->whereHas('sale', fn ($s) => $s->where('is_active', true)->where('starts_at', '<=', now())->where('ends_at', '>', now()))->select('product_id'));

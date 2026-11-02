@@ -2,9 +2,7 @@
 <html lang="{{ app()->getLocale() }}">
 <head>
     <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="@yield('description', __('store.description'))">
-    <title>@yield('title', store_setting('name').' · '.__('store.tagline'))</title>
-    <link rel="canonical" href="@yield('canonical', url()->current())">
+    @include('themes.default.content.seo')
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
 </head>
@@ -40,6 +38,9 @@
     </header>
     <main id="main" class="mx-auto max-w-6xl px-5 py-16">@if(session('status'))<p class="mb-5 rounded-xl bg-emerald-50 p-4" role="status">{{ session('status') }}</p>@endif @if($errors->any())<div role="alert" class="mb-5 rounded-xl bg-rose-50 p-4 text-rose-800">@foreach($errors->all() as $error)<p>{{ $error }}</p>@endforeach</div>@endif @yield('content')</main>
     <footer class="border-t border-stone-200 bg-white"><div class="mx-auto flex max-w-6xl flex-wrap justify-between gap-4 px-5 py-8"><span class="font-semibold">{{ store_setting('name') }}</span><p class="text-sm text-stone-600">{{ __('store.footer') }}</p><nav class="flex flex-wrap gap-6" aria-label="{{ __('content.footer_navigation') }}">@include('themes.default.content.menu',['items'=>app(\App\Domain\Content\Actions\Navigation::class)->tree('footer')])</nav></div></footer>
+    @include('themes.default.content.popup')
+    @include('themes.default.marketing.controls')
+    @include('themes.default.marketing.tracking')
     @livewireScripts
 </body>
 </html>

@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Domain\Cart\Actions\CartManager;
 use App\Domain\Cart\Actions\CartSession;
+use App\Domain\Catalog\Models\Product;
+use App\Domain\Marketing\Actions\Tracking;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -17,6 +19,8 @@ class CartController extends Controller
             $options[$key] = $file;
         }
         $manager->add($session->current(), (int) $data['product_id'], ! empty($data['variant_id']) ? (int) $data['variant_id'] : null, (int) $data['quantity'], $options);
+
+        app(Tracking::class)->product(Product::findOrFail($data['product_id']), 'AddToCart', (int) $data['quantity'], ! empty($data['variant_id']) ? (int) $data['variant_id'] : null);
 
         return redirect()->route($request->boolean('buy_now') ? 'checkout' : 'cart')->with('status', __('checkout.added'));
     }
