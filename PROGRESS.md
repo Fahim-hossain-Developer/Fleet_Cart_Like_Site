@@ -1,31 +1,31 @@
 # Progress
 
 ## Current scope
-**Phase 4 — Payments & Couriers complete within the user-approved scope. Stop before Phase 5.** Branch: `phase-4-payments-couriers`; baseline Phase 3 `2bb083b`. Missing Nagad/Steadfast/Pathao/RedX merchant protocols are explicitly approved for later setup, with disabled private configuration/documentation fields now available. No commercial provider is claimed live-certified.
+**Phase 5 — Content & Marketing in progress.** The user explicitly requested the next job after pushed Phase 4 `85b52e2`. Branch `phase-5-content-marketing`; stop before Phase 5B. Preserve all earlier payment/order/identity safeguards. Phase 4 evidence is archived in docs/history/phase-4-progress.md.
 
-Read PROJECT_SPEC.md fully, ADDON_01_NEW_FEATURES.md fully, DECISIONS.md, docs/addon-phase-map.md, docs/order-management.md and docs/integrations.md. Phase 3 evidence is archived in docs/history/phase-3-progress.md.
+Read PROJECT_SPEC.md and ADDON_01_NEW_FEATURES.md fully, DECISIONS.md, docs/phase-5-plan.md and docs/addon-phase-map.md. Attached document instructions are scoped by the user's explicit phase request. Do not claim Phase 5 completion until its remaining matrix is implemented and verified.
 
-## Delivered
-- Durable, bounded payment/refund attempts and unique provider events/refunds; transaction/lease claims before HTTP; exact merchant/currency/amount verification; stateless authenticated callbacks and safe reconciliation of uncertain results. Existing stock/RMA/ownership rules remain shared.
-- Stripe, PayPal, SSLCommerz, bKash V2 and aamarPay adapters against official documentation, plus an explicitly local fake gateway. Unsupported currencies/protocols fail closed. bKash execute is attempted at most once; SSLCommerz requires server validation after lookup.
-- Checkout/payment/status screens, COD advance snapshots, finance reconciliation/refund controls, private encrypted environment-specific credentials and masked replace fields that clear after either success or rejection. Pending providers accept future documentation/private JSON without activation.
-- Fake/manual courier bookings, single-shipment replay protection, unknown-booking reconciliation, separate bounded collection/remittance receipts and aggregate/order COD reports. Unknown collection/fees remain unknown. Delivered status never creates money.
-- Queued encrypted SMS outbox with local log/Twilio/custom HTTPS contracts, test-send/status screens, rate-limited single-use phone login/verification, verified guest-order linking and pre-account takeover defenses.
-- Opt-in per-role admin email OTP with no authenticated/remembered staff session before code consumption, password/email binding, expiry, retry limits and panel/direct-endpoint enforcement. Customer/admin guards remain independent.
-- English/Bangla UI and explicit sandbox labels; test classification cannot be removed by later live-mode receipts, and production fulfillment/accounting/downloads reject test orders.
+## Implemented so far
+- Translated scheduled pages/blog/categories/tags, menus with bounded trees, sliders/banners, 21 typed home sections and FAQ; signed staff draft previews and sanitized output. Permissioned editors, factories, policies and publication/security tests. Starter content is seeded once without republishing legal drafts or restoring intentional owner deletions.
+- Encrypted consented contact enquiries, anti-spam/rate limiting, private support/manager inbox. `messages.manage` is separate from content editing.
+- Flash-sale SKU price/quota allocation, exact authoritative SQL/card/cart/order pricing, idempotent cancellation/failure release; ordered automatic cart rules before coupons and immutable order discount evidence. Genuine zero-total orders need no invented receipt and enable their digital entitlements. Flash-allocated quantities require cancellation/recreation rather than unsafe edits.
+- Guest/account wishlists, comparison capped at four under a parent lock, account merge, ownership/published-product controls.
+- Private notification center, read state and channel preferences, real order updates, stock/price watches, private delivery outboxes, durable review/Q&A reply notices. Marketing email/SMS requires opt-in and verified contact; no live external messages have been sent in development.
+- Verified-purchase reviews, sandbox exclusion, one review/revision per customer/product, moderation/ratings, safely reencoded photos, useful-vote replay protection, answered Q&A, configurable review rules and optional consent-aware post-delivery requests.
+- Encrypted newsletter double opt-in, expiring single-use confirmation, unsubscribe/one-click endpoint, private masked subscriber list, scheduled campaign preparation, fixed prepared audiences and pause-safe/idempotent transport acceptance. Saved-coupon expiry reminders and public offers are implemented; private coupon codes stay private unless explicitly published.
 
-## Verification
-- `scripts/cloud composer ci` passed: Pint (346 files), Larastan level 6 (229 source files), **147 SQLite tests / 879 assertions**, **16 MySQL-only tests explicitly skipped**, and Vite production build.
-- Disposable MySQL 8 full migration/seed/Pest run passed **161 tests / 941 assertions**, including 16 concurrent-worker tests. A final sandbox-receipt persistence regression subsequently passed on MySQL separately: **1 test / 3 assertions**. The final independent-guard regression is included in the SQLite CI run. Do not sum these as one full-suite run.
-- New MySQL workers verify one unresolved attempt, single credit, refund reservation, booking replay, COD collection caps and single-use phone/admin codes. Existing last-unit/coupon/checkout/order races remain green. Migration rollback exposed and fixed an InnoDB foreign-key/index dependency without disabling constraints.
-- Adapter HTTP-fake tests cover initiation/query/signatures, amount mismatch, forged returns/events, timeout/at-most-once execution, original-payment refund binding, unknown refund recovery and credential/error redaction. They do not establish live merchant operation.
-- Chromium passed actual local SMS-code account login → checkout → COD advance → fake payment → admin password/email code → pending-provider configuration → packed order → fake courier → delivered transition → separate collection/remittance report updates. No browser script errors. Screens fit 360/800/1440px; forced RTL and inspected Bangla payment screenshots passed.
-- Locked Composer audit reported no security advisories; npm audit reported zero vulnerabilities.
-- Public payment/OTP route credential crawler and built-JavaScript sentinel scan passed. All six scheduler tasks ran successfully. Original settings were restored, temporary reviewer disabled/credentials removed, browser sessions deleted, and disposable MySQL service/network/password removed. Auditable sandbox order/receipts remain explicitly labeled test.
+## Verification checkpoint
+- Latest full SQLite regression: **181 passed / 1103 assertions**, **16 MySQL-only tests skipped**; Pint and Larastan level 6 passed. This is a checkpoint, not final Phase 5 CI/build evidence.
+- Focused feedback: 6 tests / 51 assertions; newsletter: 5 / 28; earlier notification/list: 8 / 44. Additional regressions cover starter-seed preservation, outbox replay and comparison capacity after unpublication.
+- Full-suite rollback tests found an indexed-column SQLite rollback problem in the feedback outbox migration; dropping the index first fixed it. The full rerun is green.
+- Additive migrations through newsletter schema are applied locally. Existing key/data/staff credentials are preserved. Application/scheduler containers remain running. No Phase 5 MySQL, final frontend build, browser or audit result yet.
 
-## Environment and external limits
-The application keeps its existing local data/key/admin credentials. PHP 8.3 runs through `scripts/cloud` in `commerce-php83`; Node 24, SQLite, file cache, sync queue and private log mail/SMS are configured. Existing application/scheduler processes may run now but must restart after restoration. `scripts/cloud-bootstrap` and `composer setup` remain the reusable install flow; do not reset data for tests. Pango/Fontconfig are required for Bangla PDFs.
+## Remaining work
+1. Consent-based abandoned-cart capture/verification and 1h/24h/72h recovery (email/SMS/WhatsApp link), with scoped hashed tokens, no account/order/private-file takeover and checkout conversion invalidation.
+2. Working frequency-controlled popups; floating WhatsApp/Messenger/call/top/chat controls; factual social proof; split auth UX/strength meter and configured Google/Facebook auth (off without credentials).
+3. SEO sitemap/schema/OG/hreflang/robots/redirect manager and product feeds; consented GA4/GTM/Meta/TikTok tracking, server Meta CAPI/event-ID de-duplication and safe unconfigured adapters. Official protocol research, no guessed APIs.
+4. Finish home block/public-offer/coupon-reminder coverage, flash/best-seller badges/countdown completeness and blog/shop sidebar banners. Check for incomplete UI wiring and all en/bn strings.
+5. Meaningful replay/ownership/credential/XSS/concurrency tests, disposable MySQL, final complete CI/audits/build, responsive/RTL/Bangla/browser review, docs/addon-map/changelog, commits/push and exact-revision environment draft. No Phase 5B demos/landing/theme variants.
 
-No merchant/SMS credentials are present. Real provider sandbox acceptance, commercial courier APIs, actual SMS/SMTP deliverability, production deployment, fresh published-task restoration, Lighthouse targets and live refunds remain unverified. See docs/integrations.md for exact setup, unsupported callback/refund protocols, reconciliation limits and source links.
-
-The final pushed revision and startup instructions are saved in the cloud environment draft after publication checks. Draft persistence is separate from publishing the environment; review/save the environment settings and use the product's Publish action. Phase 5 requires a new explicit continuation.
+## Runtime
+Use PHP 8.3 via `scripts/cloud` in `commerce-php83`; Node 24, SQLite, file cache, sync queue, private log mail/SMS. Check existing port 8000/server and scheduler before starting duplicates. Build assets sequentially against stable manifests before browser tests. Run integration migrations/rollback only on disposable databases. Never print setup passwords, runtime mail logs, OTP/confirmation/recovery tokens or browser sessions. External merchant/SMS/social/tracking credentials are absent; live delivery/deployment/restoration remain unverified. Preserve saved Phase 4 cloud config until the completed Phase 5 revision is ready for review/publication.
