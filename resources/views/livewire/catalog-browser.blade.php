@@ -1,7 +1,8 @@
-<div>
+@php($listingLayout=app(\App\Domain\Settings\Theme\Theme::class)->current()['listing'])
+<div data-listing-layout="{{ $listingLayout }}" class="theme-listing">
 <div class="mb-8 flex flex-wrap items-end justify-between gap-4"><div><p class="text-xs font-semibold uppercase tracking-widest text-brand">{{ __('catalog.catalog') }}</p><h1 class="mt-2 text-4xl font-semibold">{{ __('catalog.shop') }}</h1><p class="mt-3 text-stone-500">{{ __('catalog.showing',['from'=>$products->firstItem()??0,'to'=>$products->lastItem()??0,'total'=>$products->total()]) }}</p></div><button wire:click="clearFilters" class="min-h-11 rounded-xl border bg-white px-4">{{ __('catalog.clear_all') }}</button></div>
-<div class="grid gap-8 lg:grid-cols-[220px_1fr]">
-<aside class="space-y-7 rounded-2xl border border-stone-200 bg-white p-5">
+<div class="theme-listing-grid grid gap-8 lg:grid-cols-[220px_1fr]">
+<aside class="theme-filters space-y-7 rounded-2xl border border-stone-200 bg-white p-5">
 @if(in_array('categories',store_setting('catalog_sidebar',config('catalog.sidebar'))))<h2 class="font-semibold">{{ __('catalog.categories') }}</h2><ul>@include('themes.default.partials.category-tree',['nodes'=>$categories->whereNull('parent_id'),'ancestors'=>collect()])</ul>@endif
 <label class="block text-sm">{{ __('catalog.category') }}<select wire:model.live="category" class="mt-2 min-h-11 w-full rounded-lg border p-2"><option value="">{{ __('catalog.all_categories') }}</option>@foreach($categories as $c)<option value="{{ $c->id }}">{{ $c->name }}</option>@endforeach</select></label>
 <label class="block text-sm">{{ __('catalog.brand') }}<select wire:model.live="brand" class="mt-2 min-h-11 w-full rounded-lg border p-2"><option value="">{{ __('catalog.all_brands') }}</option>@foreach($brands as $b)<option value="{{ $b->id }}">{{ $b->name }}</option>@endforeach</select></label>

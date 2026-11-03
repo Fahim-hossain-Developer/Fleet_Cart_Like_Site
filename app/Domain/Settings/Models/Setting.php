@@ -6,7 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
-/** @property string|null $encrypted_value */
+/** @property string|null $encrypted_value
+ * @property mixed $value */
 class Setting extends Model
 {
     protected $hidden = ['encrypted_value'];

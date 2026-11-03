@@ -14,6 +14,7 @@ use App\Domain\Marketing\Models\TrackingEvent;
 use App\Domain\Orders\Models\Order;
 use App\Domain\Orders\Models\OrderEvent;
 use App\Domain\Settings\Models\IntegrationEvent;
+use App\Domain\Settings\Models\ThemeDraft;
 use App\Jobs\CheckProductWatches;
 use App\Jobs\DeliverCartRecovery;
 use App\Jobs\DeliverNewsletter;
@@ -167,3 +168,5 @@ Schedule::call(function (): void {
     }
     TrackingEvent::where('status', 'sending')->where('updated_at', '<', now()->subMinutes(5))->where('attempts', '<', 3)->update(['status' => 'retry', 'failure_code' => 'claim_interrupted']);
 })->everyFiveMinutes()->name('purchase-tracking-reconcile')->withoutOverlapping();
+
+Schedule::call(fn () => ThemeDraft::where('expires_at', '<=', now())->delete())->hourly()->name('theme-preview-cleanup')->withoutOverlapping();

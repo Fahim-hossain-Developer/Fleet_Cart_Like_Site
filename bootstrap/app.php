@@ -3,6 +3,7 @@
 use App\Http\Middleware\CustomerActive;
 use App\Http\Middleware\RequireAdminOtp;
 use App\Http\Middleware\SetLocale;
+use App\Http\Middleware\ThemePreview;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -18,7 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->web(append: [SetLocale::class, CustomerActive::class, RequireAdminOtp::class]);
+        $middleware->web(append: [SetLocale::class, ThemePreview::class, CustomerActive::class, RequireAdminOtp::class]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

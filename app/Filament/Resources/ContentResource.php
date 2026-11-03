@@ -10,6 +10,7 @@ use App\Domain\Content\Models\Menu;
 use App\Domain\Content\Models\MenuItem;
 use App\Domain\Content\Models\PostCategory;
 use App\Domain\Content\Models\Slider;
+use App\Domain\Settings\Theme\ThemeConfig;
 use App\Models\Admin;
 use Filament\Forms\Components\Component;
 use Filament\Forms\Components\DateTimePicker;
@@ -116,6 +117,7 @@ abstract class ContentResource extends Resource
         if ($kind === 'home-sections') {
             $fields[] = Select::make('type')->label(__('content.type'))->options(array_combine(SectionCatalog::TYPES, array_map(fn ($v) => __('content.type_'.$v), SectionCatalog::TYPES)))->required()->live();
             $fields[] = Select::make('locale')->label(__('content.locale'))->options(['en' => 'English', 'bn' => 'বাংলা']);
+            $fields[] = Select::make('config.style')->label(__('appearance.section_style'))->options(collect(ThemeConfig::STYLES)->mapWithKeys(fn ($s) => [$s => __('appearance.option_'.$s)])->all());
             $fields[] = Select::make('config.source')->label(__('content.source'))->options(collect(['new', 'sale', 'featured', 'best_seller', 'category', 'tag', 'flash'])->mapWithKeys(fn ($s) => [$s => __('content.source_'.$s)])->all())->default('new');
             $fields[] = Select::make('config.product_ids')->label(__('catalog.products'))->multiple()->searchable()->options(Product::published()->limit(500)->get()->mapWithKeys(fn ($record) => [$record->id => $record->name])->all());
             $fields[] = Select::make('config.category_id')->label(__('catalog.categories'))->options(Category::all()->mapWithKeys(fn ($record) => [$record->id => $record->name])->all());

@@ -1,3 +1,16 @@
+@import '@fontsource/manrope/latin-400.css';
+@import '@fontsource/manrope/latin-600.css';
+@import '@fontsource/lora/latin-400.css';
+@import '@fontsource/lora/latin-600.css';
+@import '@fontsource/nunito-sans/latin-400.css';
+@import '@fontsource/nunito-sans/latin-600.css';
+@import '@fontsource/dm-sans/latin-400.css';
+@import '@fontsource/dm-sans/latin-600.css';
+@import '@fontsource/source-sans-3/latin-400.css';
+@import '@fontsource/source-sans-3/latin-600.css';
+@import '@fontsource/hind-siliguri/bengali-400.css';
+@import '@fontsource/hind-siliguri/bengali-600.css';
+@import '@fontsource/tiro-bangla/bengali-400.css';
 @import '@fontsource/inter/latin-400.css';
 @import '@fontsource/inter/latin-600.css';
 @import '@fontsource/noto-sans-bengali/bengali-400.css';
@@ -24,4 +37,52 @@ html[lang="bn"] { font-family: 'Noto Sans Bengali', 'Inter', sans-serif; }
  .content-prose ol { @apply list-decimal ps-6; }
  .content-prose img { @apply h-auto max-w-full rounded-xl; }
  .content-prose table { @apply block max-w-full overflow-x-auto; }
+}
+
+/* Typed appearance values are validated server-side; these rules do not accept custom code. */
+.theme-storefront { background:var(--theme-bg,#fafaf9); font-family:var(--theme-font,'Inter','Noto Sans Bengali',sans-serif); }
+.theme-storefront .bg-brand { background-color:var(--theme-link,#065f46); }
+.theme-storefront .text-brand { color:var(--theme-link,#065f46); }
+.theme-storefront .bg-brand.text-white,.theme-storefront .bg-brand .text-white { color:var(--theme-on-primary,#fff); }
+.theme-storefront .rounded-lg { border-radius:calc(var(--theme-radius,16px)*.5); }
+.theme-storefront .rounded-xl { border-radius:calc(var(--theme-radius,16px)*.75); }
+.theme-storefront .rounded-2xl,.theme-storefront .rounded-3xl { border-radius:var(--theme-radius,16px); }
+.theme-storefront .theme-product-card { box-shadow:var(--theme-shadow); }
+.theme-product-card[data-card-style="minimal"],.theme-product-card[data-card-style="second_image"] {border-color:transparent;box-shadow:none;background:transparent;}
+.theme-product-card[data-card-style="food"] {display:flex;align-items:center;border-radius:8px;}
+.theme-product-card[data-card-style="food"]>a {width:38%;max-width:140px;flex-shrink:0;}
+.theme-product-card[data-card-style="boxed"] .theme-card-info {border-top:1px solid #e7e5e4;}
+.theme-product-card[data-card-style="overlay"] {position:relative;}
+.theme-product-card[data-card-style="overlay"] .theme-card-overlay {background:white;padding:8px;border-top:1px solid #e7e5e4;}
+.theme-header[data-theme-header="minimal"] {position:sticky;top:0;z-index:40;box-shadow:var(--theme-shadow);}
+.theme-header[data-theme-header="mega"] [data-header-nav] {background:var(--theme-secondary);color:var(--theme-on-secondary,#fff);padding:4px 16px;border-radius:8px;}
+.theme-home-section[data-section-style="soft"] {padding:24px;background:color-mix(in srgb,var(--theme-primary) 5%,white);border-radius:var(--theme-radius);}
+.theme-home-section[data-section-style="framed"] {padding:24px;border:1px solid #d6d3d1;border-radius:var(--theme-radius);}
+.theme-home-section[data-section-style="accent"]>div:first-child {border-inline-start:4px solid var(--theme-accent);padding-inline-start:20px;}
+.theme-listing[data-listing-layout="simple"] .theme-filters {display:none;}
+.theme-listing[data-listing-layout="simple"] .theme-listing-grid {grid-template-columns:minmax(0,1fr);}
+@media(min-width:768px){
+ .theme-header[data-theme-header="centered"] .theme-header-main {display:grid;grid-template-columns:1fr auto 1fr;}
+ .theme-header[data-theme-header="centered"] [data-header-logo] {grid-column:2;grid-row:1;text-align:center;}
+ .theme-header[data-theme-header="centered"] [data-header-tools] {grid-column:3;grid-row:1;justify-content:flex-end;}
+ .theme-header[data-theme-header="centered"] [data-header-nav] {grid-column:1/-1;grid-row:2;justify-content:center;}
+ .theme-header[data-theme-header="mega"] .theme-header-main {row-gap:16px;}
+ .theme-header[data-theme-header="mega"] [data-header-nav] {order:3;width:100%;justify-content:center;}
+ .theme-product-details[data-product-layout="sticky_info"] .theme-product-info {position:sticky;top:20px;align-self:start;}
+ .theme-product-details[data-product-layout="long_page"] .theme-product-grid {grid-template-columns:minmax(0,1fr);max-width:820px;margin-inline:auto;}
+ .theme-product-details[data-product-layout="thumbs_bottom"] .theme-product-grid {grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);}
+ .theme-product-details[data-product-layout="gallery_left"] .theme-product-thumbs {flex-direction:column;max-height:300px;float:inline-start;margin-inline-end:16px;}
+ .theme-listing[data-listing-layout="top"] .theme-listing-grid {grid-template-columns:minmax(0,1fr);}
+ .theme-listing[data-listing-layout="top"] .theme-filters {display:flex;flex-wrap:wrap;align-items:flex-start;gap:16px;}
+ .theme-listing[data-listing-layout="top"] .theme-filters>* {min-width:150px;max-width:230px;margin-top:0;}
+}
+@media(prefers-reduced-motion:reduce){.theme-card-second {transition:none;}}
+
+.theme-storefront:has([data-theme-preview-banner]) form {pointer-events:none;opacity:.75;}
+
+@media(min-width:768px){
+.theme-product-details[data-product-layout="gallery_left"] .theme-gallery {display:grid;grid-template-columns:80px minmax(0,1fr);gap:16px;align-content:start;}
+.theme-product-details[data-product-layout="gallery_left"] .theme-gallery>button {grid-column:2;grid-row:1;}
+.theme-product-details[data-product-layout="gallery_left"] .theme-gallery .theme-product-thumbs {grid-column:1;grid-row:1;float:none;margin:0;max-height:520px;}
+.theme-product-details[data-product-layout="gallery_left"] .theme-gallery>img {grid-column:2;}
 }

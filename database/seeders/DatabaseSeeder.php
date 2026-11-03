@@ -8,6 +8,7 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        $this->call(ThemePresetSeeder::class);
         $this->call([RolesAndPermissionsSeeder::class, CheckoutSeeder::class, ContentSeeder::class]);
     }
 }

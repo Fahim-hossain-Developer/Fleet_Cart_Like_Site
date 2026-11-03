@@ -107,6 +107,9 @@ class AppServiceProvider extends ServiceProvider
             Gate::policy('App\\Domain\\Marketing\\Models\\'.$model, 'App\\Domain\\Marketing\\Policies\\'.$model.'Policy');
         }
         Gate::policy(Redirect::class, RedirectPolicy::class);
+        foreach (['ThemePreset', 'ThemeDraft'] as $model) {
+            Gate::policy('App\\Domain\\Settings\\Models\\'.$model, 'App\\Domain\\Settings\\Policies\\'.$model.'Policy');
+        }
         Gate::policy(Setting::class, SettingPolicy::class);
         Gate::policy(Cart::class, CartPolicy::class);
         Gate::policy(CartItem::class, CartItemPolicy::class);

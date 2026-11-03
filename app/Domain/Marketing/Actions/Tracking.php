@@ -17,7 +17,7 @@ final class Tracking
 {
     public function consent(): ?TrackingConsent
     {
-        if (! store_setting('tracking_enabled', false)) {
+        if (request()->has('theme_preview') || ! store_setting('tracking_enabled', false)) {
             return null;
         }
 
