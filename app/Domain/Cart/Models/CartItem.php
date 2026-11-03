@@ -20,9 +20,9 @@ class CartItem extends Model
 
     protected $table = 'cart_items';
 
-    protected $fillable = ['cart_id', 'product_id', 'variant_id', 'line_key', 'qty', 'options', 'saved'];
+    protected $fillable = ['cart_id', 'product_id', 'variant_id', 'line_key', 'qty', 'options', 'saved', 'product_package_id', 'package_units'];
 
-    protected $casts = ['options' => 'array', 'saved' => 'boolean', 'qty' => 'integer'];
+    protected $casts = ['options' => 'array', 'saved' => 'boolean', 'qty' => 'integer', 'package_units' => 'integer'];
 
     /**
      * @return BelongsTo<Product,$this> */

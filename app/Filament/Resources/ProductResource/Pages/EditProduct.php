@@ -6,6 +6,7 @@ use App\Domain\Catalog\Actions\DuplicateProduct;
 use App\Domain\Catalog\Actions\GenerateVariants;
 use App\Domain\Catalog\Actions\SaveProduct;
 use App\Domain\Catalog\Models\Product;
+use App\Filament\Resources\LandingPageResource;
 use App\Filament\Resources\ProductResource;
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
@@ -41,7 +42,7 @@ class EditProduct extends EditRecord
 
     protected function getHeaderActions(): array
     {
-        return [Action::make('duplicate')->label(__('catalog.duplicate'))->action(function (): void {
+        return [Action::make('landing')->label(__('landing.landing_pages'))->visible(fn () => auth('admin')->user()?->can('landing.manage'))->url(fn () => LandingPageResource::getUrl('index', ['product' => $this->record->id])), Action::make('duplicate')->label(__('catalog.duplicate'))->action(function (): void {
             $copy = app(DuplicateProduct::class)->execute($this->record);
             $this->redirect(static::getResource()::getUrl('edit', ['record' => $copy]));
         }), Action::make('generate')->label(__('catalog.generate_variants'))->action(function (): void {

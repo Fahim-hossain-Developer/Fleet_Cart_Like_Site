@@ -6,3 +6,4 @@
 <section><h2 class="text-xl font-semibold">{{ __('orders.shipments') }}</h2>@forelse($order->shipments as $shipment)<p class="py-3">{{ $shipment->carrier }} · {{ $shipment->tracking_no }} · {{ __('orders.status_'.$shipment->status) }}</p>@empty<p class="py-3">{{ __('orders.no_shipments') }}</p>@endforelse</section>
 <section><h2 class="text-xl font-semibold">{{ __('orders.timeline') }}</h2><ol class="space-y-3 py-3">@foreach($order->events->where('is_public',true)->sortByDesc('id') as $event)<li class="border-l-2 border-stone-200 pl-4"><time class="text-sm text-stone-500">{{ $event->created_at->format('d M Y H:i') }}</time><p>{{ $event->note }}</p></li>@endforeach</ol></section>
 </div>
+@include('themes.default.account.checkout-meta')

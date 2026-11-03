@@ -19,9 +19,9 @@ class Cart extends Model
 
     protected $table = 'carts';
 
-    protected $fillable = ['token', 'user_id', 'coupon_id'];
+    protected $fillable = ['token', 'user_id', 'coupon_id', 'landing_page_id', 'landing_context'];
 
-    protected $casts = [];
+    protected $casts = ['landing_context' => 'array'];
 
     /**
      * @return HasMany<CartItem,$this> */

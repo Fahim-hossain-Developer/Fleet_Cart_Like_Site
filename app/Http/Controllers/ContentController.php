@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Domain\Content\Actions\ResolveRedirect;
 use App\Domain\Content\Models\FaqEntry;
 use App\Domain\Content\Models\HomeSection;
+use App\Domain\Content\Models\LandingPage;
 use App\Domain\Content\Models\Page;
 use App\Domain\Content\Models\Post;
 use App\Domain\Content\Models\PostCategory;
@@ -16,6 +17,12 @@ final class ContentController extends Controller
 {
     public function home(): mixed
     {
+        if (store_setting('store_mode', 'multi') === 'single') {
+            $page = LandingPage::published()->findOrFail(store_setting('primary_landing_page'));
+
+            return app(LandingController::class)->show($page->slug);
+        }
+
         return view('themes.default.home', ['sections' => HomeSection::published()->where(fn ($q) => $q->whereNull('locale')->orWhere('locale', app()->getLocale()))->orderBy('sort')->orderBy('id')->get()]);
     }
 

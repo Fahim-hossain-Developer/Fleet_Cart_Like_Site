@@ -6,6 +6,7 @@ use App\Domain\Catalog\Models\Brand;
 use App\Domain\Catalog\Models\Category;
 use App\Domain\Catalog\Models\Product;
 use App\Domain\Content\Actions\Seo;
+use App\Domain\Content\Models\LandingPage;
 use App\Domain\Content\Models\Page;
 use App\Domain\Content\Models\Post;
 use App\Domain\Marketing\Actions\FlashPricing;
@@ -17,7 +18,7 @@ final class DiscoveryController extends Controller
     private function query(string $type): Builder
     {
         return match ($type) {
-            'products' => Product::published(), 'categories' => Category::where('is_active', true), 'brands' => Brand::where('is_active', true), 'pages' => Page::published(), 'posts' => Post::published()->where(fn ($q) => $q->whereNull('post_category_id')->orWhereHas('category', fn ($q) => $q->published())), default => abort(404)
+            'landings' => LandingPage::published()->whereIn('product_id', Product::published()->select('id'))->whereHas('packages', fn ($q) => $q->where('role', 'primary')->where('is_active', true)), 'products' => Product::published(), 'categories' => Category::where('is_active', true), 'brands' => Brand::where('is_active', true), 'pages' => Page::published(), 'posts' => Post::published()->where(fn ($q) => $q->whereNull('post_category_id')->orWhereHas('category', fn ($q) => $q->published())), default => abort(404)
         };
     }
 
@@ -30,7 +31,7 @@ final class DiscoveryController extends Controller
     {
         return response()->stream(function () {
             echo '<?xml version="1.0" encoding="UTF-8"?><sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
-            foreach (['products', 'categories', 'brands', 'pages', 'posts'] as $type) {
+            foreach (['products', 'categories', 'brands', 'pages', 'posts', 'landings'] as $type) {
                 for ($page = 1; $page <= max(1, (int) ceil($this->query($type)->count() / 1000)); $page++) {
                     echo '<sitemap><loc>'.$this->xml(route('sitemap.type', [$type, $page])).'</loc></sitemap>';
                 }
@@ -53,7 +54,7 @@ final class DiscoveryController extends Controller
             foreach ($this->query($type)->orderBy('id')->offset(($page - 1) * 1000)->limit(1000)->get() as $item) {
                 /** @var Product|Category|Brand|Page|Post $item */
                 $route = match ($type) {
-                    'products' => 'product','categories' => 'category','brands' => 'brand','pages' => 'page','posts' => 'blog.post', default => abort(404)
+                    'landings' => 'landing.show','products' => 'product','categories' => 'category','brands' => 'brand','pages' => 'page','posts' => 'blog.post', default => abort(404)
                 };
                 $url = route($route, $item->slug);
                 echo '<url><loc>'.$this->xml($url).'</loc><lastmod>'.$item->updated_at->toAtomString().'</lastmod>';

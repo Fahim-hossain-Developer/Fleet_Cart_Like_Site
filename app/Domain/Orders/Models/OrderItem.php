@@ -32,7 +32,7 @@ class OrderItem extends Model
 
     protected $guarded = ['id'];
 
-    protected $casts = ['tax_inclusive' => 'boolean', 'qty' => 'integer', 'stock_deducted' => 'integer', 'restocked_qty' => 'integer', 'options' => 'array', 'unit_price' => 'integer', 'total' => 'integer'];
+    protected $casts = ['package_snapshot' => 'array', 'tax_inclusive' => 'boolean', 'qty' => 'integer', 'stock_deducted' => 'integer', 'restocked_qty' => 'integer', 'options' => 'array', 'unit_price' => 'integer', 'total' => 'integer'];
 
     /** @return BelongsTo<Order,$this> */
     public function order(): BelongsTo

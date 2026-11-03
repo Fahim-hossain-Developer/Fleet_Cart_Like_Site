@@ -3,6 +3,7 @@
 return [
     'defaults' => ['name' => 'Commerce', 'currency' => 'BDT', 'locale' => 'en', 'timezone' => 'Asia/Dhaka'],
     'rules' => [
+        'store_mode' => 'required|in:multi,single', 'primary_landing_page' => 'nullable|integer|exists:landing_pages,id', 'single_show_catalog' => 'boolean',
         'tracking_enabled' => 'boolean', 'tracking_capi' => 'boolean', 'tracking_ids' => 'array:ga4,gtm,meta,tiktok',
         'social_login_google' => 'boolean', 'social_login_facebook' => 'boolean',
         'seo_defaults' => 'array:title,description,schema',

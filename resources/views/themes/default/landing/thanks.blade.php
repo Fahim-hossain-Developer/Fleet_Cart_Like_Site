@@ -1,0 +1,11 @@
+@extends('themes.default.landing.layout')
+@section('content')
+<div class="mx-auto max-w-2xl space-y-6 rounded-2xl border bg-white p-6 md:p-10"><h1 class="text-3xl font-semibold">{{ __('landing.thank_you') }}</h1><p>{{ __('landing.order_recorded') }}</p><p>{{ __('orders.number') }}: <strong>{{ $order->number }}</strong></p><p>{{ __('checkout.total') }}: {{ catalog_money($order->total) }}</p><p>{{ __('orders.payment_status') }}: {{ __('orders.payment_'.$order->payment_status) }}</p>
+@if($order->paid_amount<$order->total&&$order->payment_method!=='cod')<a href="{{ route('payments.order',$order->number) }}" class="btn-primary">{{ __('payments.pay_order') }}</a>@endif
+@if(!empty($order->landing_snapshot['form_config']['whatsapp']))<a class="btn-secondary" href="{{ 'https://wa.me/'.ltrim($order->landing_snapshot['form_config']['whatsapp'],'+').'?text='.rawurlencode(__('landing.whatsapp_order',['number'=>$order->number])) }}" target="_blank" rel="noopener noreferrer">WhatsApp</a>@endif
+@if($offer)
+<section class="rounded-xl border p-5" aria-labelledby="offer-title"><h2 id="offer-title" class="text-xl font-semibold">{{ __('landing.'.$offer['stage']) }}</h2><p class="mt-3">{{ $offer['label'] }} · {{ catalog_money($offer['amount']) }}</p><p class="mt-3 text-sm">{{ __('landing.offer_help') }}</p><p class="mt-2 text-sm">{{ __('landing.offer_expires') }} <time datetime="{{ $offer['expires_at'] }}">{{ \Carbon\Carbon::parse($offer['expires_at'])->timezone(config('app.timezone'))->format('H:i') }}</time></p><form method="POST" action="{{ route('landing.offer',$page->slug) }}" class="mt-4 flex flex-wrap gap-3">@csrf<input type="hidden" name="_locale" value="{{ app()->getLocale() }}"><input type="hidden" name="stage" value="{{ $offer['stage'] }}"><input type="hidden" name="hash" value="{{ $offer['hash'] }}"><button name="accept" value="1" class="btn-primary">{{ __('landing.accept_offer') }}</button><button name="accept" value="0" class="btn-secondary">{{ __('landing.decline_offer') }}</button></form></section>
+@endif
+<a href="{{ route('track-order') }}" class="btn-secondary">{{ __('orders.tracking') }}</a><a href="{{ route('landing.show',$page->slug) }}" class="inline-flex min-h-11 items-center underline">{{ __('landing.back_to_product') }}</a>
+</div>
+@endsection

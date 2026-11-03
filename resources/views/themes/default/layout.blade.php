@@ -11,7 +11,7 @@
     <a href="#main" class="sr-only focus:not-sr-only focus:block focus:p-4">{{ __('store.skip') }}</a>
     @include('themes.default.appearance.header')
     @if(request()->has('theme_preview'))<div data-theme-preview-banner class="border-b bg-amber-50 p-3 text-center text-sm">{{ __('appearance.private_preview') }}</div>@endif
-    <main id="main" class="mx-auto max-w-6xl px-5 py-16">@if(session('status'))<p class="mb-5 rounded-xl bg-emerald-50 p-4" role="status">{{ session('status') }}</p>@endif @if($errors->any())<div role="alert" class="mb-5 rounded-xl bg-rose-50 p-4 text-rose-800">@foreach($errors->all() as $error)<p>{{ $error }}</p>@endforeach</div>@endif @yield('content')</main>
+    <main @if(request()->has('theme_preview')) inert @endif id="main" class="mx-auto max-w-6xl px-5 py-16">@if(session('status'))<p class="mb-5 rounded-xl bg-emerald-50 p-4" role="status">{{ session('status') }}</p>@endif @if($errors->any())<div role="alert" class="mb-5 rounded-xl bg-rose-50 p-4 text-rose-800">@foreach($errors->all() as $error)<p>{{ $error }}</p>@endforeach</div>@endif @yield('content')</main>
     @include('themes.default.appearance.footer')
     @include('themes.default.content.popup')
     @include('themes.default.marketing.controls')

@@ -42,7 +42,9 @@ class Order extends Model
 
     protected $guarded = ['id'];
 
-    protected $casts = ['automatic_discount' => 'integer', 'coupon_discount' => 'integer', 'cart_rule_snapshot' => 'array', 'shipping_address' => 'array', 'placed_at' => 'datetime', 'is_gift' => 'boolean', 'hide_prices' => 'boolean', 'total' => 'integer', 'display_total' => 'integer', 'risk_flags' => 'array', 'paid_amount' => 'integer', 'refunded_amount' => 'integer'];
+    protected $hidden = ['checkout_meta'];
+
+    protected $casts = ['landing_snapshot' => 'array', 'checkout_meta' => 'encrypted:array', 'automatic_discount' => 'integer', 'coupon_discount' => 'integer', 'cart_rule_snapshot' => 'array', 'shipping_address' => 'array', 'placed_at' => 'datetime', 'is_gift' => 'boolean', 'hide_prices' => 'boolean', 'total' => 'integer', 'display_total' => 'integer', 'risk_flags' => 'array', 'paid_amount' => 'integer', 'refunded_amount' => 'integer'];
 
     /**
      * @return HasMany<OrderItem,$this> */

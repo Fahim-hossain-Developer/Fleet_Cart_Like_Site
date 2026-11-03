@@ -10,7 +10,7 @@ final class StorefrontOverlay
 {
     public function allowed(Request $r): bool
     {
-        return ! $r->has('theme_preview') && in_array($r->route()?->getName(), ['home', 'shop', 'search', 'category', 'brand', 'product', 'blog', 'blog.post', 'page', 'faq', 'contact', 'offers'], true);
+        return ! $r->has('theme_preview') && in_array($r->route()?->getName(), ['landing.show', 'home', 'shop', 'search', 'category', 'brand', 'product', 'blog', 'blog.post', 'page', 'faq', 'contact', 'offers'], true);
     }
 
     /** @param array<int,string>|null $paths */

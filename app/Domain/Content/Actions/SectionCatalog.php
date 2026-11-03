@@ -6,6 +6,7 @@ use App\Domain\Catalog\Models\Brand;
 use App\Domain\Catalog\Models\Category;
 use App\Domain\Catalog\Models\Product;
 use App\Domain\Content\Models\Banner;
+use App\Domain\Content\Models\LandingPage;
 use App\Domain\Content\Models\Post;
 use App\Domain\Content\Models\Slider;
 use App\Domain\Marketing\Actions\BestSellers;
@@ -43,6 +44,9 @@ final class SectionCatalog
         $result = ['products' => collect(), 'categories' => collect(), 'brands' => collect(), 'posts' => collect(), 'banners' => collect(), 'slides' => collect()];
         if (in_array($type, ['product_carousel', 'product_tabs', 'image_hotspots'], true)) {
             $q = Product::published()->with(['variants', 'media']);
+            if (store_setting('store_mode', 'multi') === 'single') {
+                $q->whereIn('id', LandingPage::published()->whereHas('packages', fn ($q) => $q->where('role', 'primary')->where('is_active', true))->select('product_id'));
+            }
             if (! empty($config['product_ids'])) {
                 $q->whereIn('id', $config['product_ids']);
             }

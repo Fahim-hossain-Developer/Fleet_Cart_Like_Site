@@ -15,6 +15,7 @@ use App\Http\Controllers\ContentController;
 use App\Http\Controllers\CustomerAccountController;
 use App\Http\Controllers\CustomerAuthController;
 use App\Http\Controllers\DiscoveryController;
+use App\Http\Controllers\LandingController;
 use App\Http\Controllers\LocationController;
 use App\Http\Controllers\NewsletterController;
 use App\Http\Controllers\NotificationController;
@@ -163,7 +164,7 @@ Route::match(['get', 'post'], '/cart-recovery/stop/{token}', [CartRecoveryContro
 Route::match(['get', 'post'], '/cart-recovery/restore/{token}', [CartRecoveryController::class, 'restore'])->middleware('throttle:20,1,recovery-restore')->name('recovery.restore');
 
 Route::get('/sitemap.xml', [DiscoveryController::class, 'index'])->name('sitemap.index');
-Route::get('/sitemap-{type}-{page}.xml', [DiscoveryController::class, 'sitemap'])->where('type', 'products|categories|brands|pages|posts')->whereNumber('page')->name('sitemap.type');
+Route::get('/sitemap-{type}-{page}.xml', [DiscoveryController::class, 'sitemap'])->where('type', 'products|categories|brands|pages|posts|landings')->whereNumber('page')->name('sitemap.type');
 Route::get('/robots.txt', [DiscoveryController::class, 'robots'])->name('robots');
 Route::get('/feeds/{format}.xml', [DiscoveryController::class, 'feed'])->where('format', 'google|meta')->middleware('throttle:30,1,product-feed')->name('product.feed');
 
@@ -174,6 +175,19 @@ Route::get('/auth/{provider}/callback', [SocialLoginController::class, 'callback
 
 Route::post('/tracking/consent', [TrackingController::class, 'consent'])->middleware('throttle:30,1,tracking-consent')->name('tracking.consent');
 Route::post('/tracking/events', [TrackingController::class, 'events'])->middleware('throttle:60,1,tracking-events')->name('tracking.events');
+
+Route::get('/lp/{slug}/quick/{id}', [LandingController::class, 'quick'])->whereNumber('id')->middleware('throttle:60,1,landing-quick')->name('landing.quick');
+Route::get('/lp/{slug}', [LandingController::class, 'show'])->name('landing.show');
+Route::post('/lp/{slug}/shipping', [LandingController::class, 'methods'])->middleware('throttle:60,1,landing-shipping')->name('landing.shipping');
+Route::post('/lp/{slug}/quote', [LandingController::class, 'quote'])->middleware('throttle:60,1,landing-quote')->name('landing.quote');
+Route::post('/lp/{slug}/order', [LandingController::class, 'place'])->middleware('throttle:10,1,landing-place')->name('landing.place');
+Route::post('/lp/{slug}/offer', [LandingController::class, 'offer'])->middleware('throttle:20,1,landing-offer')->name('landing.offer');
+Route::get('/lp/{slug}/thanks', [LandingController::class, 'thanks'])->name('landing.thanks');
+Route::post('/lp/{slug}/phone/send', [LandingController::class, 'sendCode'])->middleware('throttle:3,10,landing-code-send')->name('landing.code.send');
+Route::post('/lp/{slug}/phone/verify', [LandingController::class, 'verifyCode'])->middleware('throttle:10,10,landing-code-verify')->name('landing.code.verify');
+Route::post('/lp/{slug}/reminders', [LandingController::class, 'recovery'])->middleware('throttle:30,1,landing-reminders')->name('landing.recovery');
+Route::post('/lp/{slug}/touched', [LandingController::class, 'touched'])->middleware('throttle:30,1,landing-touched')->name('landing.touched');
+Route::get('/admin/landing-template-export/{id}', [LandingController::class, 'exportTemplate'])->middleware('auth:admin')->name('landing.template.export');
 
 Route::fallback(function () {
     return app(ResolveRedirect::class)->execute('/'.ltrim(request()->path(), '/')) ?? abort(404);

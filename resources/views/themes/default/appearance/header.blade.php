@@ -1,3 +1,6 @@
+@if(store_setting('store_mode','multi')==='single')
+<header class="border-b bg-white"><div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 p-5"><a href="{{ route('home') }}" class="text-xl font-semibold">{{ store_setting('name') }}</a><nav class="flex flex-wrap items-center gap-4" aria-label="{{ __('store.navigation') }}"><a class="min-h-11 content-center" href="{{ route('home') }}">{{ __('landing.order_now') }}</a>@if(store_setting('single_show_catalog',false))<a class="min-h-11 content-center" href="{{ route('shop') }}">{{ __('catalog.shop') }}</a>@endif<a class="min-h-11 content-center" href="{{ route('account') }}">{{ __('orders.account') }}</a><a class="min-h-11 content-center" href="{{ route('track-order') }}">{{ __('orders.tracking') }}</a></nav></div></header>
+@else
     @if(store_setting('catalog_top_bar',true)||$theme['header']==='mega')<div class="flex flex-wrap items-center justify-center gap-4 bg-brand px-4 py-2 text-sm text-white"><span>{{ __('store.announcement') }}</span><form method="POST" action="{{ route('currency.update') }}">@csrf<label class="sr-only" for="display-currency">{{ __('checkout.currency') }}</label><select id="display-currency" name="currency" onchange="this.form.requestSubmit()" class="min-h-11 rounded-lg border border-white/30 bg-brand px-2">@foreach(\App\Domain\Settings\Models\Currency::where('is_active',true)->get() as $currency)<option value="{{ $currency->code }}" @selected(app(\App\Domain\Settings\Actions\CurrencyDisplay::class)->current()?->code===$currency->code)>{{ $currency->code }}</option>@endforeach</select><noscript><button>{{ __('checkout.apply') }}</button></noscript></form>                <form action="{{ route('locale.update') }}" method="POST">@csrf
                     <label for="locale" class="sr-only">{{ __('store.language') }}</label>
                     <select id="locale" name="locale" class="min-h-11 rounded-lg border border-white/30 bg-brand px-2" onchange="this.form.requestSubmit()">
@@ -26,3 +29,5 @@
             </nav>
         </div>
     </header>
+
+@endif

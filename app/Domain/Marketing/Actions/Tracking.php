@@ -4,6 +4,7 @@ namespace App\Domain\Marketing\Actions;
 
 use App\Domain\Cart\Actions\CartSession;
 use App\Domain\Cart\Actions\QuoteCart;
+use App\Domain\Cart\Models\Cart;
 use App\Domain\Catalog\Models\Product;
 use App\Domain\Marketing\Models\TrackingConsent;
 use App\Domain\Marketing\Models\TrackingEvent;
@@ -71,13 +72,18 @@ final class Tracking
         }
     }
 
-    public function checkout(): void
+    public function checkout(?Cart $cart = null, ?int $productId = null, ?string $sourceKey = null): void
     {
         try {
             $c = $this->consent();
-            if ($c) {
-                $this->record($c, 'InitiateCheckout', 'checkout:'.$c->id.':'.hash('sha256', (string) session('checkout_key')), ['currency' => config('checkout.base_currency'), 'content_ids' => array_map(fn ($line) => (string) $line['product_id'], app(QuoteCart::class)->execute(app(CartSession::class)->current()))], route('shop'));
+            if (! $c) {
+                return;
             }
+            $ids = array_map(fn ($line) => (string) $line['product_id'], app(QuoteCart::class)->execute($cart ?? app(CartSession::class)->current()));
+            if (! $ids && $productId && Product::published()->whereKey($productId)->exists()) {
+                $ids = [(string) $productId];
+            }
+            $this->record($c, 'InitiateCheckout', 'checkout:'.$c->id.':'.hash('sha256', (string) ($sourceKey ?? session('checkout_key'))), ['currency' => config('checkout.base_currency'), 'content_ids' => $ids], $productId ? route('product', Product::findOrFail($productId)->slug) : route('shop'));
         } catch (\Throwable $e) {
             Log::warning('Checkout tracking pending');
         }

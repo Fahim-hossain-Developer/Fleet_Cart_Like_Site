@@ -20,6 +20,9 @@ final class EditOrderItems
             if ($o->shipments()->exists() || $o->paid_amount || ! in_array($o->status, ['pending', 'confirmed', 'processing', 'packed', 'on-hold'])) {
                 throw ValidationException::withMessages(['order' => __('orders.invalid_operation')]);
             }
+            if ($o->items()->whereNotNull('package_snapshot')->exists()) {
+                throw ValidationException::withMessages(['order' => __('landing.package_edit_blocked')]);
+            }
             if (FlashAllocation::whereIn('order_item_id', $o->items()->pluck('id'))->exists()) {
                 throw ValidationException::withMessages(['order' => __('marketing.flash_edit_blocked')]);
             }

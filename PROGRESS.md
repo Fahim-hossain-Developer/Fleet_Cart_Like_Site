@@ -16,3 +16,8 @@ Implement typed theme/customizer/layout variants first, then landing/templates/p
 Phase 5 final CI: 215 passed/1433 assertions, 20 MySQL-only skips; MySQL full 232/1491 plus final affected suite 25/189; Pint 590 files, Larastan, Vite, audits and responsive/Bangla/RTL/browser checks passed. These are baseline results, not Phase 5B evidence.
 
 PHP 8.3 runs through scripts/cloud using commerce-php83. Docker is reachable after restart; no app/scheduler containers were running at inspection. Preserve retained key/data/credentials; restart services and verify HTTP. Build assets sequentially with HTTP/browser/DB suites. Use disposable databases for migration-reset/races. No live provider or deployment claims.
+
+## Landing checkout checkpoint
+Implemented per-product landing builder, six reusable templates with JSON round trips, typed packages, separate campaign carts, exact server totals, optional bump/fields, three form modes and checkout-purpose COD phone proof. Single-store root/hidden cart routing and protected receipts connect to existing order/payment/stock engines. Fifteen-minute upsell/downsell appends one immutable priced line, with shipping and original receipts preserved. Native Alpine quick view and click-to-load videos keep the landing bundle at 86.29 KB (29.66 KB gzip).
+
+Validation: focused LandingCheckout/Appearance/Content suite **24 passed / 218 assertions**; Larastan level 6 passed; build passed. These are checkpoint results. Demo imports/packs, full CI, MySQL races and final browser checks remain in progress. No Phase 6 work started.

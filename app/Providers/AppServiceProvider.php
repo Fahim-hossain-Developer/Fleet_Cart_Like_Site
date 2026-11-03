@@ -83,6 +83,12 @@ class AppServiceProvider extends ServiceProvider
         foreach (['FlashSale', 'FlashSaleItem', 'FlashAllocation', 'CartRule'] as $model) {
             Gate::policy('App\\Domain\\Marketing\\Models\\'.$model, MarketingPolicy::class);
         }
+        foreach (['LandingPage', 'LandingTemplate', 'ProductPackage'] as $model) {
+            Gate::policy('App\\Domain\\Content\\Models\\'.$model, 'App\\Domain\\Content\\Policies\\'.$model.'Policy');
+        }
+        foreach (['CheckoutPhoneChallenge', 'LandingOrderClaim'] as $model) {
+            Gate::policy('App\\Domain\\Checkout\\Models\\'.$model, 'App\\Domain\\Checkout\\Policies\\'.$model.'Policy');
+        }
         Gate::policy(ContactMessage::class, ContactMessagePolicy::class);
         Gate::policy(SocialIdentity::class, SocialIdentityPolicy::class);
         Gate::policy(ShoppingList::class, ShoppingListPolicy::class);
